@@ -1,4 +1,5 @@
 import { SCENES, GAME_STATE } from "../constants.js";
+import { createPlayer } from "../entities/player.js";
 
 export function levelScene(k, levelNum, levelName, nextScene) {
     k.scene(SCENES[`LEVEL_${levelNum}`], () => {
@@ -13,45 +14,63 @@ export function levelScene(k, levelNum, levelName, nextScene) {
             k.rect(k.width(), k.height()),
             k.color(...bgColors[levelNum]),
             k.pos(0, 0),
+            k.z(-10),
         ]);
 
-        // Level title (temporary)
+        // Create player
+        const player = createPlayer(k, k.center().x, k.height() - 100);
+
+        // Temporary ground platform for testing
+        k.add([
+            k.rect(k.width(), 20),
+            k.pos(0, k.height() - 40),
+            k.area(),
+            k.body({ isStatic: true }),
+            k.color(100, 100, 100),
+            "platform",
+        ]);
+
+        // Level title (temporary) - fixed position
         k.add([
             k.text(`LEVEL ${levelNum}: ${levelName}`, {
-                size: 32,
+                size: 24,
             }),
-            k.pos(k.center().x, 50),
+            k.pos(k.center().x, 30),
             k.anchor("center"),
             k.color(255, 255, 255),
+            k.fixed(),
         ]);
 
-        // Placeholder text
+        // Instructions
         k.add([
-            k.text("Level scene placeholder\n\nPress SPACE to continue to next scene\nPress ESC for main menu", {
-                size: 20,
-                width: 700,
+            k.text("Arrow keys to move\nPress SPACE to continue\nESC for menu", {
+                size: 14,
+                width: 200,
             }),
-            k.pos(k.center()),
-            k.anchor("center"),
+            k.pos(k.width() - 110, 20),
+            k.anchor("topright"),
             k.color(200, 200, 200),
+            k.fixed(),
         ]);
 
         // Show difficulty
         k.add([
             k.text(`Difficulty: ${GAME_STATE.difficulty.toUpperCase()}`, {
-                size: 16,
+                size: 14,
             }),
             k.pos(20, 20),
             k.color(150, 150, 150),
+            k.fixed(),
         ]);
 
         // Show lives
         k.add([
             k.text(`Lives: ${GAME_STATE.lives}`, {
-                size: 16,
+                size: 14,
             }),
-            k.pos(20, 45),
+            k.pos(20, 40),
             k.color(255, 100, 100),
+            k.fixed(),
         ]);
 
         // Temporary navigation
