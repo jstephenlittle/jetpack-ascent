@@ -1,0 +1,294 @@
+Perfect, let’s define this like something you can drop straight into another doc.
+
+Below is a structured character + sprite spec for:
+	•	Player
+	•	Robots (enemies/hazards)
+	•	Power-ups
+	•	Platforms
+	•	Environment tiles
+	•	UI elements
+
+I’ll assume a pixel-art style with a base grid of 32×32 px for characters and tiles. You can scale this uniformly later if needed.
+
+⸻
+
+1. Player Character Sheet – “Jetty”
+
+1.1 Core Data
+
+Field	Value
+Name	Jetty
+Role	Player character
+Base Size	32×32 px (standing)
+Hitbox	20×28 px centered, starting ~2 px above feet
+Anchor/Pivot	Bottom-center (for precise platform contact)
+Art Style	Pixel-art, soft colors, clear silhouette
+Theme Variants	Same Jetty across all levels; minor palette tweaks optional
+
+
+⸻
+
+1.2 Animation Set
+
+Animation	Frames	Frame Size	FPS (Target)	Loop	Notes
+idle	4	32×32	6	Yes	Gentle hover/bob; tiny jetpack flicker
+run	6	32×32	10–12	Yes	Leaning slightly forward, swinging arms
+jetpack_thrust	6	32×32	12	Yes	Flames + smoke particles under backpack
+jump_start	2	32×32	8	No	Brief pose when initial thrust starts
+fall	2	32×32	6	Yes	Slightly panicked pose, body angled downward
+hurt	3	32×32	10	No	Knockback pose; optional blink/red flash
+death	5	32×32	10	No	Spin/fall apart or fade-out with sparkles
+enter_door	3	32×32	8	No	Walk into doorway and fade/disappear
+
+Suggested sprite file naming:
+	•	Atlas: characters_jetty.png
+	•	Animation regions (logical names for code):
+	•	jetty_idle
+	•	jetty_run
+	•	jetty_jetpack
+	•	jetty_jump_start
+	•	jetty_fall
+	•	jetty_hurt
+	•	jetty_death
+	•	jetty_enter_door
+
+⸻
+
+1.3 Color & Readability
+	•	Helmet: light gray with a blue-tinted visor.
+	•	Suit: mid-tone color (e.g., teal or orange) to stand out from backgrounds.
+	•	Jetpack flame: bright yellow–orange with 1–2 pixels of smoke.
+	•	Clear outline (1 px darker border) for visibility on light/dark levels.
+
+⸻
+
+2. Enemy Robots (Hazards)
+
+All robots are hazards; they share some design language (eyes, metal, small glows).
+
+2.1 Roller Bot
+
+Field	Value
+Name	Roller Bot
+Role	Ground/platform hazard, “barrel replacement”
+Base Size	24×24 px (fit on 32×32 tile)
+Hitbox	20×20 px
+Pivot	Center-bottom
+
+Animation:
+
+Animation	Frames	Size	FPS	Loop	Notes
+roll	8	24×24	12	Yes	Rolling wheel; eye slit or light rotates
+idle (optional)	2	24×24	4	Yes	Small wobble when stopped
+spawn (optional)	3	24×24	8	No	Pops out from a hatch/port
+
+Theming per level:
+	•	Space: sleek metallic with blue lights.
+	•	Gothic: rusty metal with spikes / rivets.
+	•	Business: smooth casing with warning stripes.
+
+⸻
+
+2.2 Hover Drone
+
+Field	Value
+Name	Hover Drone
+Role	Mid-air horizontal hazard
+Base Size	28×20 px
+Hitbox	24×16 px
+Pivot	Center
+
+Animation:
+
+Animation	Frames	Size	FPS	Loop	Notes
+hover	4	28×20	8	Yes	Bobbing up/down, rotor or jet animation
+alert (optional)	2	28×20	6	Yes	Eye brightens when player close
+destroyed	3	28×20	10	No	Sparks and fragments
+
+
+⸻
+
+2.3 DropBot
+
+Field	Value
+Name	DropBot
+Role	Ceiling-based drop hazard
+Base Size	24×24 px
+Hitbox	20×20 px
+Pivot	Top-center when hanging; center when falling
+
+Animation:
+
+Animation	Frames	Size	FPS	Loop	Notes
+idle_hang	3	24×24	4	Yes	Claws grip ceiling, minor wiggle
+warning	2	24×24	6	Loop (short)	Blinking light before drop
+drop	3	24×24	12	No	Fast downward frames
+smashed (optional)	3	24×24	10	No	Breaks upon impact
+
+
+⸻
+
+3. Power-Up Sprites
+
+All power-ups should be clearly readable and have a glow/outline.
+
+3.1 Power-Up Specs
+
+Power-Up	Size	Hitbox	Animation	Notes
+Fuel Cell	16×16	14×14	4 frames @ 6 FPS	Floating canister with blue or green liquid
+Shield	16×16	14×14	4 frames @ 8 FPS	Circular energy icon; pulsing ring
+Mega Boost	16×16	14×14	4 frames @ 8 FPS	Arrow/rocket icon; upward glow
+Extra Life	16×16	14×14	4 frames @ 6 FPS	Heart or Jetty helmet icon
+
+File naming (in shared atlas powerups.png):
+	•	powerup_fuel
+	•	powerup_shield
+	•	powerup_megaboost
+	•	powerup_life
+
+All should have:
+	•	Idle float (slight vertical bob).
+	•	Optional glow overlay frames.
+
+⸻
+
+4. Platform & Environment Tiles
+
+Using a 32×32 px tile grid for platforms and environment tiles.
+
+4.1 Platforms (Shared Logic, Per-Level Skins)
+
+Platform Type	Size	Tiles	Animations	Notes
+Static Ledge	32×32 (extendable)	Left, Mid, Right caps	None or subtle	Basic walkable surface
+Breakaway Platform	32×32	Single / Mid	3-frame crack	Cracks then fades/crumbles
+Bounce Pad	32×32	Single	4 frames @ 10 FPS	Compressed/expanded states
+Recharge Station	32×32	Single	4–6 frames @ 6 FPS	Glowing or pulsing pad
+
+Per-Level Skins:
+	•	Space: metal panels, glowing tech edges.
+	•	Gothic: stone bricks, gargoyle edges.
+	•	Business: metal grates, sleek industrial look.
+
+⸻
+
+4.2 Background & Environment Tiles
+
+4.2.1 Level 1 – Space Tower
+
+Element	Size	Notes
+Background Layer Far	256×144 or 512×288	Stars, nebula; parallax
+Mid Layer	256×144	Satellite silhouettes, pipes
+Foreground Deco	32×32 tiles	Cables, monitors, small machines
+
+4.2.2 Level 2 – Gothic Tower
+
+Element	Size	Notes
+Background Far	256×144	Moon, clouds, distant spires
+Mid Layer	256×144	Closer tower silhouettes
+Foreground Deco	32×32	Gargoyles, lanterns, chains
+
+4.2.3 Level 3 – Modern Business Tower
+
+Element	Size	Notes
+Background Far	256×144	City skyline, skyscrapers
+Mid Layer	256×144	Closer building faces, windows
+Foreground Deco	32×32	AC units, vents, neon signs
+
+
+⸻
+
+5. Doorways & Level Transitions
+
+5.1 Door Sprite
+
+Field	Value
+Size	48×64 px (up to 2×2 tiles)
+Pivot	Bottom-center
+Animations	Idle glow (4 frames), Open (3 frames)
+
+Per-Level Visuals:
+	•	Space: sci-fi airlock door.
+	•	Gothic: tall stone arch with glowing glyphs.
+	•	Business: glass security door / elevator door.
+
+⸻
+
+6. UI & HUD Sprites
+
+6.1 HUD Icons
+
+Element	Size	Notes
+Life Icon	16×16	Jetty helmet or heart
+Fuel Icon	16×16	Tiny fuel cell symbol
+Shield Icon	16×16	Small shield symbol
+Fall Meter Icon	16×16	Down arrow inside warning triangle
+Difficulty Icons	16×16	Easy: 1 bar, Medium: 2 bars, Hard: 3 bars
+
+6.2 Bars & Meters
+
+Fuel Bar & Fall Meter
+	•	Base bar height: 8–10 px.
+	•	Use 3 sprites each:
+	•	bar_bg (static)
+	•	bar_fill (repeatable segment or scalable)
+	•	bar_frame (outline overlay)
+
+The fall meter should visually change color as risk increases:
+	•	Low: green
+	•	Medium: yellow
+	•	High: red
+
+You can handle this via palette swaps, separate sprites, or shader-less sprite variants.
+
+⸻
+
+7. Sprite Atlas & Layout Recommendations
+
+7.1 Atlases
+
+To keep things manageable for Kaboom:
+	•	characters_jetty.png – all Jetty animations.
+	•	enemies_robots.png – Roller Bot, Hover Drone, DropBot + variants.
+	•	powerups.png – all power-up sprites.
+	•	tiles_space.png, tiles_gothic.png, tiles_business.png – platforms + deco.
+	•	ui.png – icons and bars.
+
+7.2 Layout Rules
+	•	Grid alignment:
+	•	Jetty & robots: 32×32 grid cells (even if sprite is slightly smaller).
+	•	Tiles: 32×32 grid cells.
+	•	Padding: at least 2 px padding between frames to avoid bleeding when scaled.
+	•	Consistent pivot expectations:
+	•	Characters & robots: bottom-center or center.
+	•	Platforms: tile origin at top-left.
+	•	UI: origin top-left.
+
+⸻
+
+8. Metadata Example for Use in Code (Optional)
+
+You can embed something like this as a reference config for Claude/code:
+
+{
+  "player": {
+    "name": "Jetty",
+    "size": [32, 32],
+    "pivot": "bottom-center",
+    "animations": {
+      "idle": { "frames": 4, "fps": 6 },
+      "run": { "frames": 6, "fps": 12 },
+      "jetpack": { "frames": 6, "fps": 12 },
+      "hurt": { "frames": 3, "fps": 10 },
+      "death": { "frames": 5, "fps": 10 }
+    }
+  },
+  "enemies": {
+    "roller_bot": { "size": [24, 24], "animations": { "roll": { "frames": 8, "fps": 12 } } },
+    "hover_drone": { "size": [28, 20], "animations": { "hover": { "frames": 4, "fps": 8 } } },
+    "dropbot": { "size": [24, 24], "animations": { "idle_hang": { "frames": 3, "fps": 4 } } }
+  }
+}
+
+(You can expand this in your Claude doc as needed.)
+
+⸻

@@ -1,0 +1,240 @@
+Below is a clean, detailed PRD incorporating all your updates.
+It is structured so an LLM (Claude or others) can directly use it to generate Kaboom.js code scene-by-scene.
+
+If you want, I can produce a Kaboom.js starter project next using this PRD (folder structure + boilerplate code).
+
+⸻
+
+PRODUCT REQUIREMENTS DOCUMENT (PRD)
+
+Game Title (Working): Jetpack Ascent
+
+⸻
+
+1. Game Overview
+
+Jetpack Ascent is a vertical traversal platformer built with Kaboom.js. The player navigates a multi-theme tower using a jetpack, landing on platforms, avoiding robotic hazards, collecting power-ups, and advancing through ascending levels. The camera can scroll up and down, enabling backtracking, but a fall meter penalizes excessive downward velocity. The game includes three themed levels, each ending in a doorway to the next section.
+
+⸻
+
+2. Gameplay Requirements
+
+2.1 Controls
+
+Input	Action
+Left Arrow / Right Arrow	Move horizontally
+Space (hold)	Jetpack thrust upward
+Down Arrow (optional)	Slight downward adjustment (no acceleration beyond gravity)
+R	Restart after death
+Esc	Pause menu (optional)
+
+
+⸻
+
+2.2 Player Mechanics
+
+Movement & Jetpack
+	•	The player uses left/right for horizontal movement.
+	•	Holding space applies vertical jetpack thrust.
+	•	Gravity pulls the player downward when not thrusting.
+
+Camera Behavior
+	•	The camera follows the player on both X and Y axes.
+	•	Player can traverse the tower both upward and downward, allowing exploration and revisiting platforms.
+
+Fall Meter System (NEW)
+	•	The game tracks downward velocity.
+	•	If the player falls more than 50% of the screen height without sufficiently reducing velocity:
+	•	They enter damage-velocity state.
+	•	On hitting any solid platform or floor in this state → lose 1 life.
+	•	The UI shows a fall risk meter that fills based on downward velocity.
+	•	Small bursts of jetpack thrust decrease downward velocity, reducing the meter.
+
+Lives
+	•	Player starts with 3 lives.
+	•	Losing all lives triggers Game Over.
+
+⸻
+
+3. Level Structure
+
+3.1 Level Progression (UPDATED)
+	•	The tower is divided into three vertically ascending levels.
+	•	Each level is thematically distinct (see Section 5).
+	•	At the top of each level is a doorway:
+	•	Walking into the doorway triggers a level transition scene.
+	•	Upon completing all three levels, a victory screen appears.
+
+3.2 Platform Types
+
+Platform Type	Behavior
+Static Ledge	Normal solid platform
+Breakaway Platform	Crumbles after 1–2s of contact
+Bounce Pad	Launches player upward at high speed
+Recharge Station	Slowly refills jetpack fuel while standing
+
+3.3 Hazards
+
+Hazards appear on platforms, in mid-air, or emitted from level geometry.
+
+Hazard Type: Small Robots (NEW)
+Each robot type shares characteristics: mechanical movement, simple AI, collision-based damage.
+
+Robot	Behavior
+Roller Bot	Rolls along platforms like a barrel; reverses at edges
+Hover Drone	Moves horizontally mid-air; slight bobbing motion
+DropBot	Clings to ceilings; occasionally drops down in a straight line
+
+
+⸻
+
+4. Power-Ups
+
+Name	Effect
+Fuel Cell	Refills a chunk of jetpack fuel
+Shield	Temporary invulnerability (absorbs one hit or fall impact)
+Mega Boost	Large one-time upward velocity burst
+Extra Life	Adds +1 life (rare)
+
+All power-ups visually float and rotate.
+
+⸻
+
+5. Themes & Visual Design
+
+5.1 World Themes
+
+Each level has a distinct art style, backgrounds, and hazards.
+
+Level 1: Space Tower
+	•	Floating mechanical platforms, satellites, glowing pads.
+	•	Background: stars, nebulae, blue/purple gradient.
+	•	Hazards: space-themed hover drones, roller bots with metallic skins.
+	•	Ambient: slight starfield parallax.
+
+Level 2: Gothic Tower
+	•	Gargoyle platforms, cracked stone ledges, lantern posts.
+	•	Background: moonlit sky, grey-blue gradient.
+	•	Hazards: Gothic-styled robots (spiked roller bots, bat-like drones).
+	•	Ambient: subtle fog and stained-glass details.
+
+Level 3: Modern Business Tower
+	•	Steel catwalks, office-floor platforms, neon-lit pads.
+	•	Background: skyscrapers, light pollution, orange/blue gradient.
+	•	Hazards: small corporate-maintenance robots re-skinned for this theme.
+	•	Ambient: blinking building lights and window reflections.
+
+Atmospheric Gradient
+	•	As altitude increases, color shifts subtly upward within each level.
+	•	Scrolling visuals reinforce upward motion.
+
+⸻
+
+6. Characters
+
+6.1 Player Character
+
+Name: Jetty
+Appearance:
+	•	Small explorer/astronaut with a jetpack and helmet visor.
+	•	Jetpack emits flame animations only when thrusting.
+	•	Idle animation: gentle hover bob.
+
+Stats:
+	•	Move speed: moderate
+	•	Jetpack thrust: medium-high
+	•	Gravity: normal Kaboom body() defaults with tuning
+	•	Max downward velocity before danger: configurable parameter
+
+⸻
+
+6.2 Enemy Robots
+
+Name	Description	AI Pattern	Damage
+Roller Bot	Wheel-like robot with eye-light	Moves along platforms, reverses on edges	1 life
+Hover Drone	Oval robot with rotors	Smooth left-right air movement	1 life
+DropBot	Ceiling-mounted	Drops when player is under it	1 life
+
+
+⸻
+
+7. Difficulty Modes
+
+Player selects difficulty from Easy / Medium / Hard.
+
+Setting	Easy	Medium	Hard
+Platform Density	High	Medium	Low
+Hazard Spawn Rate	Low	Medium	High
+Jetpack Fuel	Generous	Moderate	Limited
+Fall Meter Sensitivity	Forgiving	Normal	Strict
+Enemy Speed	Slow	Normal	Fast
+Extra Lives	+1 bonus	Default	None
+Power-Up Frequency	High	Medium	Low
+
+Difficulty must modify in-game configuration variables (not hard-coded differences).
+
+⸻
+
+8. Technical Requirements (Kaboom.js)
+
+8.1 Engine
+	•	Use Kaboom.js v200+.
+	•	Components expected: pos(), area(), sprite(), body(), move(), solid(), health(), onCollide(), color(), text(), camPos(), etc.
+
+8.2 Scenes
+	1.	Main Menu
+	2.	Level 1 (Space Tower)
+	3.	Level 2 (Gothic Tower)
+	4.	Level 3 (Business Tower)
+	5.	Level Transition Scene
+	6.	Game Over
+	7.	Victory Screen
+
+8.3 Data Structures
+	•	Level data stored as arrays or JSON-like structures:
+	•	Platform positions
+	•	Hazard spawn points
+	•	Doorway coordinates
+	•	Difficulty modifiers stored in a config object:
+
+DIFFICULTY = {
+  easy: { platformDensity: 1.3, hazardRate: 0.6, fuelRate: 1.4, fallTolerance: 1.4 },
+  medium: { platformDensity: 1.0, hazardRate: 1.0, fuelRate: 1.0, fallTolerance: 1.0 },
+  hard: { platformDensity: 0.7, hazardRate: 1.5, fuelRate: 0.8, fallTolerance: 0.7 }
+};
+
+
+⸻
+
+9. UI Requirements
+
+On-Screen HUD
+	•	Lives counter
+	•	Jetpack fuel meter
+	•	Fall meter (fills based on downward velocity)
+	•	Height indicator / Level indicator
+
+Menus
+	•	Start screen with difficulty selection
+	•	Level intro cards
+	•	Game over and victory screens
+
+⸻
+
+10. Game Flow
+	1.	User launches game → Main Menu
+	2.	Choose difficulty → Level 1 begins
+	3.	Traverse upward → Enter doorway → Level 2
+	4.	Repeat for Level 3
+	5.	Reach top → Victory
+	6.	Upon death (no lives) → Game Over screen with retry option
+
+⸻
+
+11. Future Enhancements
+	•	Time trials
+	•	Leaderboards
+	•	Cosmetic unlocks
+	•	Procedural infinite mode
+
+⸻
