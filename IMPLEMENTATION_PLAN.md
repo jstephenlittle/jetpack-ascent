@@ -65,18 +65,18 @@ This document tracks the implementation stages for Jetpack Ascent. Each stage re
 - Platform behaviors feel polished
 
 **Tests**:
-- [ ] Player lands on and walks across static platforms
-- [ ] Breakaway platforms crumble after 1-2s
-- [ ] Bounce pads launch player upward
-- [ ] Recharge stations refill fuel when standing
+- [x] Player lands on and walks across static platforms
+- [x] Breakaway platforms crumble after 1-2s
+- [x] Bounce pads launch player upward
+- [x] Recharge stations refill fuel when standing
 
-**Status**: Not Started
+**Status**: Complete ✅
 
 ### Tasks (GitHub Issues)
-- [ ] #10 - Create static platform system
-- [ ] #11 - Implement breakaway platforms
-- [ ] #12 - Implement bounce pads
-- [ ] #13 - Implement recharge stations
+- [x] #10 - Create static platform system
+- [x] #11 - Implement breakaway platforms
+- [x] #12 - Implement bounce pads
+- [x] #13 - Implement recharge stations
 
 ---
 
@@ -88,19 +88,19 @@ This document tracks the implementation stages for Jetpack Ascent. Each stage re
 - Power-ups spawn and provide correct effects
 
 **Tests**:
-- [ ] Roller Bot patrols platforms and reverses at edges
-- [ ] Hover Drone moves horizontally with bobbing motion
-- [ ] DropBot detects player and drops with warning
-- [ ] All power-ups grant correct effects on collection
-- [ ] Enemy collisions reduce lives appropriately
+- [x] Roller Bot patrols platforms and reverses at edges
+- [x] Hover Drone moves horizontally with bobbing motion
+- [x] DropBot detects player and drops with warning
+- [x] All power-ups grant correct effects on collection
+- [x] Enemy collisions reduce lives appropriately
 
-**Status**: Not Started
+**Status**: Complete ✅
 
 ### Tasks (GitHub Issues)
-- [ ] #14 - Implement Roller Bot enemy
-- [ ] #15 - Implement Hover Drone enemy
-- [ ] #16 - Implement DropBot enemy
-- [ ] #17 - Implement power-up system
+- [x] #14 - Implement Roller Bot enemy
+- [x] #15 - Implement Hover Drone enemy
+- [x] #16 - Implement DropBot enemy
+- [x] #17 - Implement power-up system
 
 ---
 
