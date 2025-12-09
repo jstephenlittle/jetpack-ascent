@@ -1,6 +1,6 @@
 # Jetpack Ascent
 
-A vertical traversal platformer built with Kaboom.js. Navigate a multi-theme tower using a jetpack, landing on platforms, avoiding robotic hazards, collecting power-ups, and advancing through three distinct levels.
+A vertical traversal platformer built with KAPLAY. Navigate a multi-theme tower using a jetpack, landing on platforms, avoiding robotic hazards, collecting power-ups, and advancing through three distinct levels.
 
 ## Game Overview
 
@@ -122,4 +122,4 @@ TBD
 ## Credits
 
 Game design and development by John Little
-Built with [Kaboom.js](https://kaboomjs.com/)
+Built with [KAPLAY](https://kaplayjs.com/)

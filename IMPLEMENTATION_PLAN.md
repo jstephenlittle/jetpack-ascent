@@ -5,23 +5,23 @@ This document tracks the implementation stages for Jetpack Ascent. Each stage re
 ---
 
 ## Stage 1: Foundation & Project Setup
-**Goal**: Establish project structure, tooling, and basic Kaboom.js scaffolding
+**Goal**: Establish project structure, tooling, and basic KAPLAY scaffolding
 **Success Criteria**:
 - Project runs with `npm run dev`
-- Kaboom window displays without errors
+- KAPLAY window displays without errors
 - Scene management system works
 - Difficulty configuration system in place
 
 **Tests**:
 - [x] Vite dev server starts successfully
-- [ ] Kaboom initializes and renders
+- [ ] KAPLAY initializes and renders
 - [ ] Can switch between placeholder scenes
 - [ ] Difficulty settings can be selected and applied
 
 **Status**: In Progress
 
 ### Tasks (GitHub Issues)
-- [ ] #1 - Setup Kaboom.js project structure
+- [ ] #1 - Setup KAPLAY project structure
 - [ ] #2 - Create asset folder structure
 - [ ] #3 - Implement scene management system
 - [ ] #4 - Create difficulty configuration system

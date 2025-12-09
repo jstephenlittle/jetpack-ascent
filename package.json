@@ -1,0 +1,33 @@
+{
+  "name": "jetpack-ascent",
+  "version": "1.0.0",
+  "description": "A vertical traversal platformer built with KAPLAY. Navigate a multi-theme tower using a jetpack, landing on platforms, avoiding robotic hazards, collecting power-ups, and advancing through three distinct levels.",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jstephenlittle/jetpack-ascent.git"
+  },
+  "keywords": [
+    "game",
+    "platformer",
+    "kaplay",
+    "jetpack"
+  ],
+  "author": "John Little",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/jstephenlittle/jetpack-ascent/issues"
+  },
+  "homepage": "https://github.com/jstephenlittle/jetpack-ascent#readme",
+  "devDependencies": {
+    "vite": "^7.2.7"
+  },
+  "dependencies": {
+    "kaplay": "^3001.0.19"
+  }
+}

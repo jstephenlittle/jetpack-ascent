@@ -1,7 +1,7 @@
 Below is a clean, detailed PRD incorporating all your updates.
-It is structured so an LLM (Claude or others) can directly use it to generate Kaboom.js code scene-by-scene.
+It is structured so an LLM (Claude or others) can directly use it to generate KAPLAY code scene-by-scene.
 
-If you want, I can produce a Kaboom.js starter project next using this PRD (folder structure + boilerplate code).
+If you want, I can produce a KAPLAY starter project next using this PRD (folder structure + boilerplate code).
 
 ⸻
 
@@ -13,7 +13,7 @@ Game Title (Working): Jetpack Ascent
 
 1. Game Overview
 
-Jetpack Ascent is a vertical traversal platformer built with Kaboom.js. The player navigates a multi-theme tower using a jetpack, landing on platforms, avoiding robotic hazards, collecting power-ups, and advancing through ascending levels. The camera can scroll up and down, enabling backtracking, but a fall meter penalizes excessive downward velocity. The game includes three themed levels, each ending in a doorway to the next section.
+Jetpack Ascent is a vertical traversal platformer built with KAPLAY. The player navigates a multi-theme tower using a jetpack, landing on platforms, avoiding robotic hazards, collecting power-ups, and advancing through ascending levels. The camera can scroll up and down, enabling backtracking, but a fall meter penalizes excessive downward velocity. The game includes three themed levels, each ending in a doorway to the next section.
 
 ⸻
 
@@ -143,7 +143,7 @@ Appearance:
 Stats:
 	•	Move speed: moderate
 	•	Jetpack thrust: medium-high
-	•	Gravity: normal Kaboom body() defaults with tuning
+	•	Gravity: normal KAPLAY body() defaults with tuning
 	•	Max downward velocity before danger: configurable parameter
 
 ⸻
@@ -175,10 +175,10 @@ Difficulty must modify in-game configuration variables (not hard-coded differenc
 
 ⸻
 
-8. Technical Requirements (Kaboom.js)
+8. Technical Requirements (KAPLAY)
 
 8.1 Engine
-	•	Use Kaboom.js v200+.
+	•	Use KAPLAY (formerly Kaboom.js) v3000+.
 	•	Components expected: pos(), area(), sprite(), body(), move(), solid(), health(), onCollide(), color(), text(), camPos(), etc.
 
 8.2 Scenes
