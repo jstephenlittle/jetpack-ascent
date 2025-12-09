@@ -144,6 +144,45 @@ export function levelScene(k, levelNum, levelName, nextScene) {
             k.fixed(),
         ]);
 
+        // Fall meter
+        const fallMeterBg = k.add([
+            k.rect(104, 14),
+            k.pos(20, 95),
+            k.color(50, 50, 50),
+            k.fixed(),
+        ]);
+
+        const fallMeter = k.add([
+            k.rect(0, 10),
+            k.pos(22, 97),
+            k.color(100, 255, 100),
+            k.fixed(),
+            {
+                update() {
+                    const fallPercent = Math.min(player.fallVelocity / player.fallDamageThreshold, 1.0);
+                    this.width = 100 * fallPercent;
+
+                    // Color code based on danger level
+                    if (fallPercent < 0.5) {
+                        this.color = k.rgb(100, 255, 100); // Green - safe
+                    } else if (fallPercent < 0.8) {
+                        this.color = k.rgb(255, 200, 100); // Yellow - warning
+                    } else {
+                        this.color = k.rgb(255, 100, 100); // Red - dangerous
+                    }
+                }
+            }
+        ]);
+
+        k.add([
+            k.text("FALL", {
+                size: 10,
+            }),
+            k.pos(20, 113),
+            k.color(150, 150, 150),
+            k.fixed(),
+        ]);
+
         // Temporary navigation
         k.onKeyPress("space", () => {
             if (nextScene === SCENES.VICTORY) {

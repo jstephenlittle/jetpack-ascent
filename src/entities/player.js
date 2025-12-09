@@ -28,6 +28,8 @@ export function createPlayer(k, x, y) {
             isFalling: false,
             fallVelocity: 0,
             moveSpeed: GAME_CONFIG.PLAYER_MOVE_SPEED,
+            isDangerousFall: false,
+            fallDamageThreshold: applyDifficulty(GAME_CONFIG.FALL_DAMAGE_THRESHOLD, "fallTolerance", difficulty),
         },
     ]);
 
@@ -74,8 +76,18 @@ export function createPlayer(k, x, y) {
         if (player.vel.y > 0) {
             player.fallVelocity = player.vel.y;
             player.isFalling = true;
+
+            // Check if fall is dangerous
+            if (player.fallVelocity > player.fallDamageThreshold) {
+                player.isDangerousFall = true;
+            }
         } else {
             player.isFalling = false;
+            // Reset dangerous fall state when moving upward or on ground
+            if (player.isGrounded()) {
+                player.isDangerousFall = false;
+                player.fallVelocity = 0;
+            }
         }
     });
 
