@@ -20,6 +20,11 @@ export function levelScene(k, levelNum, levelName, nextScene) {
         // Create player
         const player = createPlayer(k, k.center().x, k.height() - 100);
 
+        // Camera follows player
+        player.onUpdate(() => {
+            k.camPos(player.pos);
+        });
+
         // Temporary ground platform for testing
         k.add([
             k.rect(k.width(), 20),
@@ -27,6 +32,34 @@ export function levelScene(k, levelNum, levelName, nextScene) {
             k.area(),
             k.body({ isStatic: true }),
             k.color(100, 100, 100),
+            "platform",
+        ]);
+
+        // Add some test platforms above for vertical camera testing
+        k.add([
+            k.rect(150, 20),
+            k.pos(k.center().x - 75, k.height() - 200),
+            k.area(),
+            k.body({ isStatic: true }),
+            k.color(150, 100, 100),
+            "platform",
+        ]);
+
+        k.add([
+            k.rect(150, 20),
+            k.pos(k.center().x - 200, k.height() - 350),
+            k.area(),
+            k.body({ isStatic: true }),
+            k.color(100, 150, 100),
+            "platform",
+        ]);
+
+        k.add([
+            k.rect(150, 20),
+            k.pos(k.center().x + 50, k.height() - 500),
+            k.area(),
+            k.body({ isStatic: true }),
+            k.color(100, 100, 150),
             "platform",
         ]);
 
