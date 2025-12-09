@@ -73,6 +73,44 @@ export function levelScene(k, levelNum, levelName, nextScene) {
             k.fixed(),
         ]);
 
+        // Fuel meter
+        const fuelBarBg = k.add([
+            k.rect(104, 14),
+            k.pos(20, 60),
+            k.color(50, 50, 50),
+            k.fixed(),
+        ]);
+
+        const fuelBar = k.add([
+            k.rect(100, 10),
+            k.pos(22, 62),
+            k.color(100, 200, 255),
+            k.fixed(),
+            {
+                update() {
+                    const fuelPercent = player.fuel / player.maxFuel;
+                    this.width = 100 * fuelPercent;
+                    // Change color based on fuel level
+                    if (fuelPercent > 0.5) {
+                        this.color = k.rgb(100, 200, 255);
+                    } else if (fuelPercent > 0.2) {
+                        this.color = k.rgb(255, 200, 100);
+                    } else {
+                        this.color = k.rgb(255, 100, 100);
+                    }
+                }
+            }
+        ]);
+
+        k.add([
+            k.text("FUEL", {
+                size: 10,
+            }),
+            k.pos(20, 78),
+            k.color(150, 150, 150),
+            k.fixed(),
+        ]);
+
         // Temporary navigation
         k.onKeyPress("space", () => {
             if (nextScene === SCENES.VICTORY) {

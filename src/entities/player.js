@@ -31,14 +31,43 @@ export function createPlayer(k, x, y) {
         },
     ]);
 
-    // Movement input
+    // Jetpack flame visual (hidden by default)
+    const flame = player.add([
+        k.rect(16, 24),
+        k.pos(0, 24),
+        k.anchor("top"),
+        k.color(255, 150, 0),
+        k.opacity(0),
+        "flame",
+    ]);
+
+    // Movement and jetpack input
     player.onUpdate(() => {
+        const dt = k.dt();
+
         // Horizontal movement
         if (k.isKeyDown("left")) {
             player.move(-player.moveSpeed, 0);
         }
         if (k.isKeyDown("right")) {
             player.move(player.moveSpeed, 0);
+        }
+
+        // Jetpack thrust
+        if (k.isKeyDown("space") && player.fuel > 0) {
+            // Apply upward thrust
+            player.jump(GAME_CONFIG.PLAYER_JETPACK_THRUST);
+
+            // Deplete fuel
+            player.fuel -= GAME_CONFIG.FUEL_CONSUMPTION_RATE * dt;
+            if (player.fuel < 0) player.fuel = 0;
+
+            // Show flame
+            player.isThrusting = true;
+            flame.opacity = 1;
+        } else {
+            player.isThrusting = false;
+            flame.opacity = 0;
         }
 
         // Track fall velocity for fall damage system
