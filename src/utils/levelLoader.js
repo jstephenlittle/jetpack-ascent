@@ -1,0 +1,109 @@
+import { createPlatform, createBreakawayPlatform, createBouncePad, createRechargeStation } from "../entities/platform.js";
+import { createRollerBot, createHoverDrone, createDropBot } from "../entities/enemy.js";
+import { createFuelCell, createShield, createMegaBoost, createExtraLife } from "../entities/powerup.js";
+import { GAME_STATE } from "../constants.js";
+import { getDifficultyConfig } from "../config.js";
+
+/**
+ * Load and create level from JSON data
+ * @param {object} k - KAPLAY instance
+ * @param {object} levelData - Level JSON data
+ */
+export async function loadLevel(k, levelData) {
+    const difficulty = getDifficultyConfig(GAME_STATE.difficulty);
+
+    // Load platforms
+    levelData.platforms.forEach(platform => {
+        const adjustedCount = Math.random() < difficulty.platformDensity;
+
+        // Skip some platforms on hard difficulty
+        if (GAME_STATE.difficulty === "hard" && !adjustedCount && Math.random() > 0.7) {
+            return;
+        }
+
+        switch (platform.type) {
+            case "static":
+                createPlatform(k, platform.x, platform.y, platform.width);
+                break;
+            case "breakaway":
+                createBreakawayPlatform(k, platform.x, platform.y, platform.width);
+                break;
+            case "bounce":
+                createBouncePad(k, platform.x, platform.y, platform.width);
+                break;
+            case "recharge":
+                createRechargeStation(k, platform.x, platform.y, platform.width);
+                break;
+        }
+    });
+
+    // Load enemies (adjusted by difficulty hazardRate)
+    levelData.enemies.forEach(enemy => {
+        // Spawn more enemies on hard, fewer on easy
+        const spawnChance = difficulty.hazardRate;
+        if (Math.random() > spawnChance && GAME_STATE.difficulty !== "medium") {
+            return;
+        }
+
+        switch (enemy.type) {
+            case "rollerBot":
+                createRollerBot(k, enemy.x, enemy.y);
+                break;
+            case "hoverDrone":
+                createHoverDrone(k, enemy.x, enemy.y, enemy.range || 150);
+                break;
+            case "dropBot":
+                createDropBot(k, enemy.x, enemy.y);
+                break;
+        }
+    });
+
+    // Load power-ups (adjusted by difficulty powerUpFrequency)
+    levelData.powerups.forEach(powerup => {
+        const spawnChance = difficulty.powerUpFrequency;
+        if (Math.random() > spawnChance && GAME_STATE.difficulty !== "medium") {
+            return;
+        }
+
+        switch (powerup.type) {
+            case "fuelCell":
+                createFuelCell(k, powerup.x, powerup.y);
+                break;
+            case "shield":
+                createShield(k, powerup.x, powerup.y);
+                break;
+            case "megaBoost":
+                createMegaBoost(k, powerup.x, powerup.y);
+                break;
+            case "extraLife":
+                createExtraLife(k, powerup.x, powerup.y);
+                break;
+        }
+    });
+
+    // Create doorway
+    const doorway = k.add([
+        k.rect(48, 64),
+        k.pos(levelData.doorwayPosition[0], levelData.doorwayPosition[1]),
+        k.anchor("center"),
+        k.area(),
+        k.color(100, 255, 255),
+        k.opacity(0.8),
+        "doorway",
+        {
+            glowTime: 0,
+        },
+    ]);
+
+    // Doorway glow animation
+    doorway.onUpdate(() => {
+        doorway.glowTime += k.dt();
+        const glow = (Math.sin(doorway.glowTime * 3) + 1) * 0.5;
+        doorway.opacity = 0.5 + glow * 0.3;
+    });
+
+    return {
+        startPos: k.vec2(levelData.startPosition[0], levelData.startPosition[1]),
+        doorway: doorway,
+    };
+}

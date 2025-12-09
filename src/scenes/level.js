@@ -1,8 +1,9 @@
 import { SCENES, GAME_STATE } from "../constants.js";
 import { createPlayer } from "../entities/player.js";
+import { loadLevel } from "../utils/levelLoader.js";
 
-export function levelScene(k, levelNum, levelName, nextScene) {
-    k.scene(SCENES[`LEVEL_${levelNum}`], () => {
+export function levelScene(k, levelNum, levelName, nextScene, levelDataUrl) {
+    k.scene(SCENES[`LEVEL_${levelNum}`], async () => {
         // Background color (placeholder)
         const bgColors = {
             1: [20, 20, 60],  // Space - dark blue
@@ -17,8 +18,20 @@ export function levelScene(k, levelNum, levelName, nextScene) {
             k.z(-10),
         ]);
 
-        // Starting position
-        const startPos = k.vec2(k.center().x, k.height() - 100);
+        // Load level data
+        let levelInfo;
+        let startPos;
+
+        if (levelDataUrl) {
+            // Load level from JSON
+            const response = await fetch(levelDataUrl);
+            const levelData = await response.json();
+            levelInfo = await loadLevel(k, levelData);
+            startPos = levelInfo.startPos;
+        } else {
+            // Fallback for levels without data
+            startPos = k.vec2(k.center().x, k.height() - 100);
+        }
 
         // Create player
         const player = createPlayer(k, startPos.x, startPos.y);
@@ -43,43 +56,16 @@ export function levelScene(k, levelNum, levelName, nextScene) {
             }
         });
 
-        // Temporary ground platform for testing
-        k.add([
-            k.rect(k.width(), 20),
-            k.pos(0, k.height() - 40),
-            k.area(),
-            k.body({ isStatic: true }),
-            k.color(100, 100, 100),
-            "platform",
-        ]);
-
-        // Add some test platforms above for vertical camera testing
-        k.add([
-            k.rect(150, 20),
-            k.pos(k.center().x - 75, k.height() - 200),
-            k.area(),
-            k.body({ isStatic: true }),
-            k.color(150, 100, 100),
-            "platform",
-        ]);
-
-        k.add([
-            k.rect(150, 20),
-            k.pos(k.center().x - 200, k.height() - 350),
-            k.area(),
-            k.body({ isStatic: true }),
-            k.color(100, 150, 100),
-            "platform",
-        ]);
-
-        k.add([
-            k.rect(150, 20),
-            k.pos(k.center().x + 50, k.height() - 500),
-            k.area(),
-            k.body({ isStatic: true }),
-            k.color(100, 100, 150),
-            "platform",
-        ]);
+        // Handle doorway entry
+        if (levelInfo && levelInfo.doorway) {
+            levelInfo.doorway.onCollide("player", () => {
+                if (nextScene === SCENES.VICTORY) {
+                    k.go(SCENES.VICTORY);
+                } else {
+                    k.go(SCENES.TRANSITION, levelNum + 1);
+                }
+            });
+        }
 
         // Level title (temporary) - fixed position
         k.add([
@@ -225,7 +211,7 @@ export function levelScene(k, levelNum, levelName, nextScene) {
 
 // Create all three level scenes
 export function initLevelScenes(k) {
-    levelScene(k, 1, "Space Tower", SCENES.TRANSITION);
-    levelScene(k, 2, "Gothic Tower", SCENES.TRANSITION);
-    levelScene(k, 3, "Business Tower", SCENES.VICTORY);
+    levelScene(k, 1, "Space Tower", SCENES.TRANSITION, "/assets/data/level1_space.json");
+    levelScene(k, 2, "Gothic Tower", SCENES.TRANSITION, null);
+    levelScene(k, 3, "Business Tower", SCENES.VICTORY, null);
 }
