@@ -14,16 +14,16 @@ This document tracks the implementation stages for Jetpack Ascent. Each stage re
 
 **Tests**:
 - [x] Vite dev server starts successfully
-- [ ] KAPLAY initializes and renders
-- [ ] Can switch between placeholder scenes
+- [x] KAPLAY initializes and renders
+- [x] Can switch between placeholder scenes
 - [ ] Difficulty settings can be selected and applied
 
-**Status**: In Progress
+**Status**: In Progress (3/4 complete)
 
 ### Tasks (GitHub Issues)
-- [ ] #1 - Setup KAPLAY project structure
-- [ ] #2 - Create asset folder structure
-- [ ] #3 - Implement scene management system
+- [x] #1 - Setup KAPLAY project structure
+- [x] #2 - Create asset folder structure
+- [x] #3 - Implement scene management system
 - [ ] #4 - Create difficulty configuration system
 
 ---
