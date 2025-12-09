@@ -43,6 +43,28 @@ export function createPlayer(k, x, y) {
         "flame",
     ]);
 
+    // Collision with platforms - check for fall damage
+    player.onCollide("platform", () => {
+        if (player.isDangerousFall) {
+            // Take fall damage
+            GAME_STATE.lives -= 1;
+            player.isDangerousFall = false;
+            player.fallVelocity = 0;
+
+            if (GAME_STATE.lives <= 0) {
+                // Game Over will be handled by scene
+                player.trigger("death");
+            } else {
+                // Flash player to show damage
+                const originalColor = player.color.clone();
+                player.color = k.rgb(255, 100, 100);
+                k.wait(0.2, () => {
+                    player.color = originalColor;
+                });
+            }
+        }
+    });
+
     // Movement and jetpack input
     player.onUpdate(() => {
         const dt = k.dt();

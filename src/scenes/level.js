@@ -17,12 +17,30 @@ export function levelScene(k, levelNum, levelName, nextScene) {
             k.z(-10),
         ]);
 
+        // Starting position
+        const startPos = k.vec2(k.center().x, k.height() - 100);
+
         // Create player
-        const player = createPlayer(k, k.center().x, k.height() - 100);
+        const player = createPlayer(k, startPos.x, startPos.y);
 
         // Camera follows player
         player.onUpdate(() => {
             k.camPos(player.pos);
+        });
+
+        // Death handler
+        player.on("death", () => {
+            if (GAME_STATE.lives <= 0) {
+                // Go to Game Over
+                k.go(SCENES.GAME_OVER);
+            } else {
+                // Respawn at start
+                player.pos = startPos.clone();
+                player.vel = k.vec2(0, 0);
+                player.fuel = player.maxFuel;
+                player.fallVelocity = 0;
+                player.isDangerousFall = false;
+            }
         });
 
         // Temporary ground platform for testing
@@ -76,7 +94,7 @@ export function levelScene(k, levelNum, levelName, nextScene) {
 
         // Instructions
         k.add([
-            k.text("Arrow keys to move\nPress SPACE to continue\nESC for menu", {
+            k.text("Arrow keys to move\nPress N to next level\nR to restart\nESC for menu", {
                 size: 14,
                 width: 200,
             }),
@@ -183,8 +201,15 @@ export function levelScene(k, levelNum, levelName, nextScene) {
             k.fixed(),
         ]);
 
+        // R key to restart (after death)
+        k.onKeyPress("r", () => {
+            GAME_STATE.currentLevel = 1;
+            GAME_STATE.score = 0;
+            k.go(SCENES.MAIN_MENU);
+        });
+
         // Temporary navigation
-        k.onKeyPress("space", () => {
+        k.onKeyPress("n", () => {
             if (nextScene === SCENES.VICTORY) {
                 k.go(SCENES.VICTORY);
             } else {
