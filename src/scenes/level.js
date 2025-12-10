@@ -4,6 +4,9 @@ import { loadLevel } from "../utils/levelLoader.js";
 
 export function levelScene(k, levelNum, levelName, nextScene, levelDataUrl) {
     k.scene(SCENES[`LEVEL_${levelNum}`], async () => {
+        console.log(`[LEVEL ${levelNum}] Scene initializing...`);
+        console.log(`[LEVEL ${levelNum}] Canvas size: ${k.width()}x${k.height()}`);
+
         // Background color (placeholder)
         const bgColors = {
             1: [20, 20, 60],  // Space - dark blue
@@ -23,18 +26,24 @@ export function levelScene(k, levelNum, levelName, nextScene, levelDataUrl) {
         let startPos;
 
         if (levelDataUrl) {
+            console.log(`[LEVEL ${levelNum}] Loading level data from: ${levelDataUrl}`);
             // Load level from JSON
             const response = await fetch(levelDataUrl);
             const levelData = await response.json();
+            console.log(`[LEVEL ${levelNum}] Level data loaded:`, levelData);
             levelInfo = await loadLevel(k, levelData);
             startPos = levelInfo.startPos;
+            console.log(`[LEVEL ${levelNum}] Start position:`, startPos);
         } else {
             // Fallback for levels without data
             startPos = k.vec2(k.center().x, k.height() - 100);
+            console.log(`[LEVEL ${levelNum}] Using fallback start position:`, startPos);
         }
 
         // Create player
+        console.log(`[LEVEL ${levelNum}] Creating player at (${startPos.x}, ${startPos.y})`);
         const player = createPlayer(k, startPos.x, startPos.y);
+        console.log(`[LEVEL ${levelNum}] Player created:`, player);
 
         // Camera follows player
         player.onUpdate(() => {

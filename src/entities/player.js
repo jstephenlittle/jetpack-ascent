@@ -9,7 +9,9 @@ import { GAME_STATE } from "../constants.js";
  * @returns {object} Player game object
  */
 export function createPlayer(k, x, y) {
+    console.log(`[PLAYER] Creating player at position (${x}, ${y})`);
     const difficulty = GAME_STATE.difficulty;
+    console.log(`[PLAYER] Difficulty: ${difficulty}`);
 
     // Player entity with placeholder rectangle
     const player = k.add([
@@ -25,13 +27,19 @@ export function createPlayer(k, x, y) {
             fuel: applyDifficulty(GAME_CONFIG.DEFAULT_FUEL, "fuelRate", difficulty),
             maxFuel: applyDifficulty(GAME_CONFIG.DEFAULT_FUEL, "fuelRate", difficulty),
             isThrusting: false,
-            isFalling: false,
             fallVelocity: 0,
             moveSpeed: GAME_CONFIG.PLAYER_MOVE_SPEED,
             isDangerousFall: false,
             fallDamageThreshold: applyDifficulty(GAME_CONFIG.FALL_DAMAGE_THRESHOLD, "fallTolerance", difficulty),
         },
     ]);
+
+    console.log(`[PLAYER] Player object created:`, {
+        pos: player.pos,
+        fuel: player.fuel,
+        maxFuel: player.maxFuel,
+        moveSpeed: player.moveSpeed
+    });
 
     // Jetpack flame visual (hidden by default)
     const flame = player.add([
@@ -42,6 +50,8 @@ export function createPlayer(k, x, y) {
         k.opacity(0),
         "flame",
     ]);
+
+    console.log(`[PLAYER] Flame visual added to player`);
 
     // Collision with platforms - check for fall damage
     player.onCollide("platform", () => {
@@ -97,14 +107,12 @@ export function createPlayer(k, x, y) {
         // Track fall velocity for fall damage system
         if (player.vel.y > 0) {
             player.fallVelocity = player.vel.y;
-            player.isFalling = true;
 
             // Check if fall is dangerous
             if (player.fallVelocity > player.fallDamageThreshold) {
                 player.isDangerousFall = true;
             }
         } else {
-            player.isFalling = false;
             // Reset dangerous fall state when moving upward or on ground
             if (player.isGrounded()) {
                 player.isDangerousFall = false;

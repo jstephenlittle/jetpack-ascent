@@ -5,6 +5,7 @@
   "startPosition": [400, 550],
   "doorwayPosition": [400, -2400],
   "platforms": [
+    {"type": "static", "x": 300, "y": 580, "width": 400},
     {"type": "static", "x": 300, "y": 600, "width": 200},
     {"type": "static", "x": 100, "y": 480, "width": 150},
     {"type": "static", "x": 500, "y": 420, "width": 150},
