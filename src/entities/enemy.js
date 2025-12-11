@@ -18,7 +18,7 @@ export function createRollerBot(k, x, y) {
         k.anchor("center"),
         k.area(),
         k.body(),
-        k.color(200, 50, 50),
+        k.color(200, 80, 80), // Red metallic for hostile robots
         "enemy",
         "rollerBot",
         {

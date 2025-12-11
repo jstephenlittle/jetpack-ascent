@@ -11,7 +11,7 @@ import { GAME_CONFIG } from "../config.js";
  */
 export function createPlatform(k, x, y, width = 150, options = {}) {
     const height = options.height || GAME_CONFIG.PLATFORM_HEIGHT;
-    const color = options.color || [100, 100, 100];
+    const color = options.color || [80, 120, 160]; // Metallic blue-grey for space theme
 
     return k.add([
         k.rect(width, height),
@@ -41,7 +41,7 @@ export function createBreakawayPlatform(k, x, y, width = 150) {
         k.pos(x, y),
         k.area(),
         k.body({ isStatic: true }),
-        k.color(150, 100, 80),
+        k.color(120, 80, 140), // Purple-ish for unstable energy platforms
         "platform",
         {
             platformType: "breakaway",
@@ -96,7 +96,7 @@ export function createBouncePad(k, x, y, width = 100) {
         k.pos(x, y),
         k.area(),
         k.body({ isStatic: true }),
-        k.color(255, 150, 50),
+        k.color(255, 200, 50), // Bright yellow/gold for energy boosters
         "platform",
         {
             platformType: "bounce",

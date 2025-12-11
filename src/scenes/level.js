@@ -21,6 +21,29 @@ export function levelScene(k, levelNum, levelName, nextScene, levelDataUrl) {
             k.z(-10),
         ]);
 
+        // Add stars for space theme (Level 1 only)
+        if (levelNum === 1) {
+            for (let i = 0; i < 100; i++) {
+                const x = Math.random() * k.width();
+                const y = Math.random() * 3000 - 2500; // Spread stars across level height
+                const size = Math.random() * 2 + 1;
+                const brightness = Math.random() * 100 + 155;
+
+                k.add([
+                    k.circle(size),
+                    k.pos(x, y),
+                    k.color(brightness, brightness, brightness),
+                    k.opacity(0.6 + Math.random() * 0.4),
+                    k.z(-5),
+                    k.fixed(),
+                    {
+                        twinkleTime: Math.random() * Math.PI * 2,
+                        twinkleSpeed: 0.5 + Math.random() * 1.5,
+                    }
+                ]);
+            }
+        }
+
         // Load level data
         let levelInfo;
         let startPos;
