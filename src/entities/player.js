@@ -20,7 +20,7 @@ export function createPlayer(k, x, y) {
         k.anchor("center"),
         k.area(),
         k.body(),
-        k.color(100, 200, 255),
+        k.color(100, 200, 255), // Bright blue for Jetty
         "player",
         {
             // Player state
@@ -89,8 +89,16 @@ export function createPlayer(k, x, y) {
 
         // Jetpack thrust
         if (k.isKeyDown("space") && player.fuel > 0) {
-            // Apply upward thrust
-            player.jump(GAME_CONFIG.PLAYER_JETPACK_THRUST);
+            // Apply gradual upward thrust by modifying velocity directly
+            // This allows gravity to always work and creates smoother acceleration
+            // Thrust needs to be stronger than gravity (1600) to lift
+            const thrustForce = 2800 * dt; // Strong enough to overcome gravity + accelerate up
+            player.vel.y -= thrustForce;
+
+            // Cap maximum upward velocity
+            if (player.vel.y < -600) {
+                player.vel.y = -600;
+            }
 
             // Deplete fuel
             player.fuel -= GAME_CONFIG.FUEL_CONSUMPTION_RATE * dt;

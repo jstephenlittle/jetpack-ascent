@@ -16,6 +16,9 @@ const k = kaplay({
     debug: true,
 });
 
+// Set gravity using method instead of config
+k.setGravity(1600);
+
 // Initialize all scenes
 mainMenuScene(k);
 initLevelScenes(k);
