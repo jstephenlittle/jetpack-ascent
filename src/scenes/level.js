@@ -67,6 +67,27 @@ export function levelScene(k, levelNum, levelName, nextScene, levelDataUrl) {
             }
         }
 
+        // Add window lights for Business Tower theme (Level 3 only)
+        if (levelNum === 3) {
+            // Create grid of window lights
+            for (let y = 500; y > -3500; y -= 100) {
+                for (let x = 50; x < k.width(); x += 80) {
+                    const isLit = Math.random() > 0.4; // 60% of windows are lit
+                    if (isLit) {
+                        const brightness = 180 + Math.random() * 75;
+                        k.add([
+                            k.rect(20, 30),
+                            k.pos(x, y),
+                            k.color(brightness, brightness, brightness - 20), // Warm white/yellow
+                            k.opacity(0.3 + Math.random() * 0.2),
+                            k.z(-6),
+                            k.fixed(),
+                        ]);
+                    }
+                }
+            }
+        }
+
         // Load level data
         let levelInfo;
         let startPos;
@@ -268,5 +289,5 @@ export function levelScene(k, levelNum, levelName, nextScene, levelDataUrl) {
 export function initLevelScenes(k) {
     levelScene(k, 1, "Space Tower", SCENES.TRANSITION, "/assets/data/level1_space.json");
     levelScene(k, 2, "Gothic Tower", SCENES.TRANSITION, "/assets/data/level2_gothic.json");
-    levelScene(k, 3, "Business Tower", SCENES.VICTORY, null);
+    levelScene(k, 3, "Business Tower", SCENES.VICTORY, "/assets/data/level3_business.json");
 }
