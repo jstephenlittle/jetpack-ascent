@@ -44,6 +44,29 @@ export function levelScene(k, levelNum, levelName, nextScene, levelDataUrl) {
             }
         }
 
+        // Add floating dust/particles for Gothic theme (Level 2 only)
+        if (levelNum === 2) {
+            for (let i = 0; i < 80; i++) {
+                const x = Math.random() * k.width();
+                const y = Math.random() * 3500 - 3000; // Spread across level height
+                const size = Math.random() * 3 + 1;
+
+                k.add([
+                    k.circle(size),
+                    k.pos(x, y),
+                    k.color(120, 100, 120), // Dusty purple/grey
+                    k.opacity(0.2 + Math.random() * 0.3),
+                    k.z(-5),
+                    k.fixed(),
+                    {
+                        driftTime: Math.random() * Math.PI * 2,
+                        driftSpeed: 0.3 + Math.random() * 0.7,
+                        driftAmount: 10 + Math.random() * 20,
+                    }
+                ]);
+            }
+        }
+
         // Load level data
         let levelInfo;
         let startPos;
@@ -244,6 +267,6 @@ export function levelScene(k, levelNum, levelName, nextScene, levelDataUrl) {
 // Create all three level scenes
 export function initLevelScenes(k) {
     levelScene(k, 1, "Space Tower", SCENES.TRANSITION, "/assets/data/level1_space.json");
-    levelScene(k, 2, "Gothic Tower", SCENES.TRANSITION, null);
+    levelScene(k, 2, "Gothic Tower", SCENES.TRANSITION, "/assets/data/level2_gothic.json");
     levelScene(k, 3, "Business Tower", SCENES.VICTORY, null);
 }
