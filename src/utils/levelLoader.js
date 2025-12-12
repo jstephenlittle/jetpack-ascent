@@ -1,4 +1,4 @@
-import { createPlatform, createBreakawayPlatform, createBouncePad, createRechargeStation } from "../entities/platform.js";
+import { createPlatform, createBreakawayPlatform, createBouncePad, createRechargeStation, createCheckpoint } from "../entities/platform.js";
 import { createRollerBot, createHoverDrone, createDropBot } from "../entities/enemy.js";
 import { createFuelCell, createShield, createMegaBoost, createExtraLife } from "../entities/powerup.js";
 import { GAME_STATE } from "../constants.js";
@@ -40,6 +40,10 @@ export async function loadLevel(k, levelData) {
                 break;
             case "recharge":
                 createRechargeStation(k, platform.x, platform.y, platform.width);
+                platformsCreated++;
+                break;
+            case "checkpoint":
+                createCheckpoint(k, platform.x, platform.y, platform.width);
                 platformsCreated++;
                 break;
         }

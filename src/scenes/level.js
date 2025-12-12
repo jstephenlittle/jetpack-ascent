@@ -123,8 +123,9 @@ export function levelScene(k, levelNum, levelName, nextScene, levelDataUrl) {
                 // Go to Game Over
                 k.go(SCENES.GAME_OVER);
             } else {
-                // Respawn at start
-                player.pos = startPos.clone();
+                // Respawn at checkpoint if available, otherwise at start
+                const respawnPos = player.checkpointPos ? player.checkpointPos.clone() : startPos.clone();
+                player.pos = respawnPos;
                 player.vel = k.vec2(0, 0);
                 player.fuel = player.maxFuel;
                 player.fallVelocity = 0;

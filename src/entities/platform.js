@@ -170,3 +170,50 @@ export function createRechargeStation(k, x, y, width = 120) {
 
     return platform;
 }
+
+/**
+ * Create a checkpoint platform that saves player progress
+ * @param {object} k - KAPLAY instance
+ * @param {number} x - X position
+ * @param {number} y - Y position
+ * @param {number} width - Platform width
+ * @returns {object} Platform game object
+ */
+export function createCheckpoint(k, x, y, width = 200) {
+    const height = GAME_CONFIG.PLATFORM_HEIGHT;
+    const platform = k.add([
+        k.rect(width, height),
+        k.pos(x, y),
+        k.area(),
+        k.body({ isStatic: true }),
+        k.color(100, 255, 100), // Green for checkpoint
+        "platform",
+        "checkpoint",
+        {
+            platformType: "checkpoint",
+            activated: false,
+        },
+    ]);
+
+    // Activate checkpoint when player lands
+    platform.onCollide("player", (player) => {
+        if (!platform.activated) {
+            platform.activated = true;
+            platform.color = k.rgb(255, 255, 100); // Change to yellow when activated
+
+            // Save checkpoint position
+            player.checkpointPos = k.vec2(platform.pos.x, platform.pos.y - 50);
+            console.log(`[CHECKPOINT] Checkpoint saved at y: ${platform.pos.y}`);
+        }
+    });
+
+    // Visual pulse animation
+    platform.onUpdate(() => {
+        if (!platform.activated) {
+            const pulse = (Math.sin(k.time() * 4) + 1) * 0.5;
+            platform.opacity = 0.7 + pulse * 0.3;
+        }
+    });
+
+    return platform;
+}

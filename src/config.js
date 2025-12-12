@@ -47,8 +47,8 @@ export const GAME_CONFIG = {
 
     // Fuel
     DEFAULT_FUEL: 100,
-    FUEL_CONSUMPTION_RATE: 20, // per second
-    FUEL_RECHARGE_RATE: 30, // per second on recharge station
+    FUEL_CONSUMPTION_RATE: 35, // per second (increased for strategic play)
+    FUEL_RECHARGE_RATE: 40, // per second on recharge station
 
     // Fall damage threshold (50% of screen height as velocity)
     FALL_DAMAGE_THRESHOLD: 300,
