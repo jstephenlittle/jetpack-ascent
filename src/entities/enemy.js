@@ -2,6 +2,46 @@ import { GAME_CONFIG, applyDifficulty } from "../config.js";
 import { GAME_STATE } from "../constants.js";
 
 /**
+ * Spawn explosion particles when enemy is destroyed
+ */
+function spawnDeathParticles(k, x, y, color) {
+    const particleCount = 8;
+    for (let i = 0; i < particleCount; i++) {
+        const angle = (i / particleCount) * Math.PI * 2;
+        const speed = 100 + Math.random() * 100;
+        const vx = Math.cos(angle) * speed;
+        const vy = Math.sin(angle) * speed;
+
+        const particle = k.add([
+            k.rect(6, 6),
+            k.pos(x, y),
+            k.color(color),
+            k.opacity(1),
+            k.anchor("center"),
+            "particle",
+            {
+                vx: vx,
+                vy: vy,
+                lifetime: 0.5,
+                age: 0,
+            }
+        ]);
+
+        particle.onUpdate(() => {
+            particle.age += k.dt();
+            particle.pos.x += particle.vx * k.dt();
+            particle.pos.y += particle.vy * k.dt();
+            particle.opacity = 1 - (particle.age / particle.lifetime);
+            particle.angle += k.dt() * 10;
+
+            if (particle.age >= particle.lifetime) {
+                k.destroy(particle);
+            }
+        });
+    }
+}
+
+/**
  * Create a Roller Bot enemy
  * Rolls along platforms, reverses at edges
  * @param {object} k - KAPLAY instance
@@ -49,20 +89,36 @@ export function createRollerBot(k, x, y) {
 
     // Damage player on collision
     bot.onCollide("player", (player) => {
-        GAME_STATE.lives -= 1;
-
-        if (GAME_STATE.lives <= 0) {
-            player.trigger("death");
-        } else {
-            // Flash player red
+        // Check for shield
+        if (player.hasShield) {
+            player.hasShield = false;
+            // Remove shield visual
+            const shieldEffect = player.get("shieldEffect")[0];
+            if (shieldEffect) k.destroy(shieldEffect);
+            // Flash blue to show shield absorbed hit
             const originalColor = player.color.clone();
-            player.color = k.rgb(255, 100, 100);
+            player.color = k.rgb(100, 200, 255);
             k.wait(0.2, () => {
                 player.color = originalColor;
             });
+        } else {
+            GAME_STATE.lives -= 1;
+            k.shake(8); // Screen shake on damage
+
+            if (GAME_STATE.lives <= 0) {
+                player.trigger("death");
+            } else {
+                // Flash player red
+                const originalColor = player.color.clone();
+                player.color = k.rgb(255, 100, 100);
+                k.wait(0.2, () => {
+                    player.color = originalColor;
+                });
+            }
         }
 
-        // Destroy enemy on hit
+        // Spawn death particles and destroy enemy
+        spawnDeathParticles(k, bot.pos.x, bot.pos.y, k.rgb(200, 80, 80));
         k.destroy(bot);
     });
 
@@ -117,18 +173,33 @@ export function createHoverDrone(k, x, y, range = 150) {
 
     // Damage player on collision
     drone.onCollide("player", (player) => {
-        GAME_STATE.lives -= 1;
-
-        if (GAME_STATE.lives <= 0) {
-            player.trigger("death");
-        } else {
+        // Check for shield
+        if (player.hasShield) {
+            player.hasShield = false;
+            const shieldEffect = player.get("shieldEffect")[0];
+            if (shieldEffect) k.destroy(shieldEffect);
             const originalColor = player.color.clone();
-            player.color = k.rgb(255, 100, 100);
+            player.color = k.rgb(100, 200, 255);
             k.wait(0.2, () => {
                 player.color = originalColor;
             });
+        } else {
+            GAME_STATE.lives -= 1;
+            k.shake(8); // Screen shake on damage
+
+            if (GAME_STATE.lives <= 0) {
+                player.trigger("death");
+            } else {
+                const originalColor = player.color.clone();
+                player.color = k.rgb(255, 100, 100);
+                k.wait(0.2, () => {
+                    player.color = originalColor;
+                });
+            }
         }
 
+        // Spawn death particles and destroy enemy
+        spawnDeathParticles(k, drone.pos.x, drone.pos.y, k.rgb(150, 100, 200));
         k.destroy(drone);
     });
 
@@ -198,24 +269,40 @@ export function createDropBot(k, x, y) {
 
     // Damage player on collision
     bot.onCollide("player", (player) => {
-        GAME_STATE.lives -= 1;
-
-        if (GAME_STATE.lives <= 0) {
-            player.trigger("death");
-        } else {
+        // Check for shield
+        if (player.hasShield) {
+            player.hasShield = false;
+            const shieldEffect = player.get("shieldEffect")[0];
+            if (shieldEffect) k.destroy(shieldEffect);
             const originalColor = player.color.clone();
-            player.color = k.rgb(255, 100, 100);
+            player.color = k.rgb(100, 200, 255);
             k.wait(0.2, () => {
                 player.color = originalColor;
             });
+        } else {
+            GAME_STATE.lives -= 1;
+            k.shake(8); // Screen shake on damage
+
+            if (GAME_STATE.lives <= 0) {
+                player.trigger("death");
+            } else {
+                const originalColor = player.color.clone();
+                player.color = k.rgb(255, 100, 100);
+                k.wait(0.2, () => {
+                    player.color = originalColor;
+                });
+            }
         }
 
+        // Spawn death particles and destroy enemy
+        spawnDeathParticles(k, bot.pos.x, bot.pos.y, k.rgb(200, 150, 50));
         k.destroy(bot);
     });
 
     // Destroy when hitting ground
     bot.onCollide("platform", () => {
         if (!bot.isHanging) {
+            spawnDeathParticles(k, bot.pos.x, bot.pos.y, k.rgb(200, 150, 50));
             k.destroy(bot);
         }
     });

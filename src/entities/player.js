@@ -56,8 +56,25 @@ export function createPlayer(k, x, y) {
     // Collision with platforms - check for fall damage
     player.onCollide("platform", () => {
         if (player.isDangerousFall) {
+            // Check for shield
+            if (player.hasShield) {
+                player.hasShield = false;
+                const shieldEffect = player.get("shieldEffect")[0];
+                if (shieldEffect) k.destroy(shieldEffect);
+                player.isDangerousFall = false;
+                player.fallVelocity = 0;
+                // Flash blue to show shield absorbed hit
+                const originalColor = player.color.clone();
+                player.color = k.rgb(100, 200, 255);
+                k.wait(0.2, () => {
+                    player.color = originalColor;
+                });
+                return;
+            }
+
             // Take fall damage
             GAME_STATE.lives -= 1;
+            k.shake(10); // Screen shake on fall damage
             player.isDangerousFall = false;
             player.fallVelocity = 0;
 
@@ -91,13 +108,12 @@ export function createPlayer(k, x, y) {
         if (k.isKeyDown("space") && player.fuel > 0) {
             // Apply gradual upward thrust by modifying velocity directly
             // This allows gravity to always work and creates smoother acceleration
-            // Thrust needs to be stronger than gravity (1600) to lift
-            const thrustForce = 2800 * dt; // Strong enough to overcome gravity + accelerate up
+            const thrustForce = GAME_CONFIG.PLAYER_JETPACK_THRUST * dt;
             player.vel.y -= thrustForce;
 
             // Cap maximum upward velocity
-            if (player.vel.y < -600) {
-                player.vel.y = -600;
+            if (player.vel.y < -GAME_CONFIG.PLAYER_MAX_UPWARD_VELOCITY) {
+                player.vel.y = -GAME_CONFIG.PLAYER_MAX_UPWARD_VELOCITY;
             }
 
             // Deplete fuel
@@ -126,6 +142,14 @@ export function createPlayer(k, x, y) {
                 player.isDangerousFall = false;
                 player.fallVelocity = 0;
             }
+        }
+
+        // Keep player within horizontal bounds
+        const margin = 20;
+        if (player.pos.x < margin) {
+            player.pos.x = margin;
+        } else if (player.pos.x > k.width() - margin) {
+            player.pos.x = k.width() - margin;
         }
     });
 

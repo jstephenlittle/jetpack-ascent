@@ -23,9 +23,10 @@ export function levelScene(k, levelNum, levelName, nextScene, levelDataUrl) {
 
         // Add stars for space theme (Level 1 only)
         if (levelNum === 1) {
-            for (let i = 0; i < 100; i++) {
+            // Spread stars across the full level height (15000)
+            for (let i = 0; i < 300; i++) {
                 const x = Math.random() * k.width();
-                const y = Math.random() * 3000 - 2500; // Spread stars across level height
+                const y = Math.random() * 16000 - 15000; // Cover full level from bottom to top
                 const size = Math.random() * 2 + 1;
                 const brightness = Math.random() * 100 + 155;
 
@@ -35,10 +36,15 @@ export function levelScene(k, levelNum, levelName, nextScene, levelDataUrl) {
                     k.color(brightness, brightness, brightness),
                     k.opacity(0.6 + Math.random() * 0.4),
                     k.z(-5),
-                    k.fixed(),
+                    "star",
                     {
                         twinkleTime: Math.random() * Math.PI * 2,
                         twinkleSpeed: 0.5 + Math.random() * 1.5,
+                        baseOpacity: 0.6 + Math.random() * 0.4,
+                        update() {
+                            this.twinkleTime += k.dt() * this.twinkleSpeed;
+                            this.opacity = this.baseOpacity * (0.7 + Math.sin(this.twinkleTime) * 0.3);
+                        }
                     }
                 ]);
             }
@@ -157,13 +163,13 @@ export function levelScene(k, levelNum, levelName, nextScene, levelDataUrl) {
 
         // Instructions
         k.add([
-            k.text("Arrow keys to move\nPress N to next level\nR to restart\nESC for menu", {
-                size: 14,
-                width: 200,
+            k.text("Arrow keys: Move\nSpace: Jetpack\nR: Restart | ESC: Menu", {
+                size: 12,
+                width: 180,
             }),
-            k.pos(k.width() - 110, 20),
+            k.pos(k.width() - 20, 20),
             k.anchor("topright"),
-            k.color(200, 200, 200),
+            k.color(180, 180, 180),
             k.fixed(),
         ]);
 
@@ -177,14 +183,19 @@ export function levelScene(k, levelNum, levelName, nextScene, levelDataUrl) {
             k.fixed(),
         ]);
 
-        // Show lives
-        k.add([
+        // Show lives (dynamic)
+        const livesText = k.add([
             k.text(`Lives: ${GAME_STATE.lives}`, {
                 size: 14,
             }),
             k.pos(20, 40),
             k.color(255, 100, 100),
             k.fixed(),
+            {
+                update() {
+                    this.text = `Lives: ${GAME_STATE.lives}`;
+                }
+            }
         ]);
 
         // Fuel meter

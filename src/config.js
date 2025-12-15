@@ -38,9 +38,10 @@ export const DIFFICULTY = {
 export const GAME_CONFIG = {
     // Player
     PLAYER_MOVE_SPEED: 200,
-    PLAYER_JETPACK_THRUST: 600,
+    PLAYER_JETPACK_THRUST: 2800, // Must be > gravity to lift off
+    PLAYER_MAX_UPWARD_VELOCITY: 600, // Cap for upward speed
     PLAYER_MAX_FALL_VELOCITY: 800,
-    PLAYER_GRAVITY: 1200,
+    PLAYER_GRAVITY: 1600, // Matches k.setGravity() in main.js
 
     // Lives
     DEFAULT_LIVES: 3,
