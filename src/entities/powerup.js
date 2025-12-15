@@ -204,11 +204,14 @@ export function createHealthPickup(k, x, y) {
         GAME_STATE.health = Math.min(GAME_STATE.health + healAmount, GAME_STATE.maxHealth);
 
         // Flash green to show healing
-        const originalColor = player.color.clone();
-        player.color = k.rgb(100, 255, 100);
-        k.wait(0.2, () => {
-            player.color = originalColor;
-        });
+        const body = player.get("body")[0];
+        if (body) {
+            const originalColor = body.color.clone();
+            body.color = k.rgb(100, 255, 100);
+            k.wait(0.2, () => {
+                body.color = originalColor;
+            });
+        }
 
         k.destroy(powerup);
     });

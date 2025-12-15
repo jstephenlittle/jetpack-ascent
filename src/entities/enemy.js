@@ -42,6 +42,20 @@ function spawnDeathParticles(k, x, y, color) {
 }
 
 /**
+ * Flash the player's body to indicate damage or shield
+ */
+function flashPlayerBody(k, player, color, duration = 0.2) {
+    const body = player.get("body")[0];
+    if (body) {
+        const originalColor = body.color.clone();
+        body.color = color;
+        k.wait(duration, () => {
+            body.color = originalColor;
+        });
+    }
+}
+
+/**
  * Handle player taking damage from enemy collision
  * Returns true if damage was dealt, false if shield absorbed it
  */
@@ -52,11 +66,7 @@ function dealDamageToPlayer(k, player) {
         const shieldEffect = player.get("shieldEffect")[0];
         if (shieldEffect) k.destroy(shieldEffect);
         // Flash blue to show shield absorbed hit
-        const originalColor = player.color.clone();
-        player.color = k.rgb(100, 200, 255);
-        k.wait(0.2, () => {
-            player.color = originalColor;
-        });
+        flashPlayerBody(k, player, k.rgb(100, 200, 255));
         return false;
     }
 
@@ -71,12 +81,8 @@ function dealDamageToPlayer(k, player) {
         GAME_STATE.health = 0;
         player.trigger("death");
     } else {
-        // Flash player red
-        const originalColor = player.color.clone();
-        player.color = k.rgb(255, 100, 100);
-        k.wait(0.2, () => {
-            player.color = originalColor;
-        });
+        // Flash player body red
+        flashPlayerBody(k, player, k.rgb(255, 100, 100));
     }
 
     return true;

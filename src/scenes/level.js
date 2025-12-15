@@ -22,26 +22,48 @@ export function levelScene(k, levelNum, levelName, nextScene, levelDataUrl) {
             k.z(-10),
         ]);
 
-        // Add stars for space theme (Level 1 only)
+        // Add elaborate space background (Level 1 only)
         if (levelNum === 1) {
-            // Spread stars across the full level height (15000)
-            for (let i = 0; i < 300; i++) {
+            // === LAYER 1: Earth/Atmosphere at bottom (y: 600 to -2000) ===
+
+            // Earth curve at very bottom
+            k.add([
+                k.circle(800),
+                k.pos(k.width() / 2, 1200),
+                k.anchor("center"),
+                k.color(60, 120, 180),
+                k.opacity(0.4),
+                k.z(-9),
+            ]);
+
+            // Atmosphere glow
+            k.add([
+                k.circle(850),
+                k.pos(k.width() / 2, 1250),
+                k.anchor("center"),
+                k.color(100, 180, 255),
+                k.opacity(0.15),
+                k.z(-9),
+            ]);
+
+            // === LAYER 2: Scattered stars throughout ===
+            for (let i = 0; i < 400; i++) {
                 const x = Math.random() * k.width();
-                const y = Math.random() * 16000 - 15000; // Cover full level from bottom to top
-                const size = Math.random() * 2 + 1;
+                const y = Math.random() * 16000 - 15000;
+                const size = Math.random() * 2 + 0.5;
                 const brightness = Math.random() * 100 + 155;
 
                 k.add([
                     k.circle(size),
                     k.pos(x, y),
                     k.color(brightness, brightness, brightness),
-                    k.opacity(0.6 + Math.random() * 0.4),
-                    k.z(-5),
+                    k.opacity(0.5 + Math.random() * 0.5),
+                    k.z(-8),
                     "star",
                     {
                         twinkleTime: Math.random() * Math.PI * 2,
                         twinkleSpeed: 0.5 + Math.random() * 1.5,
-                        baseOpacity: 0.6 + Math.random() * 0.4,
+                        baseOpacity: 0.5 + Math.random() * 0.5,
                         update() {
                             this.twinkleTime += k.dt() * this.twinkleSpeed;
                             this.opacity = this.baseOpacity * (0.7 + Math.sin(this.twinkleTime) * 0.3);
@@ -49,6 +71,157 @@ export function levelScene(k, levelNum, levelName, nextScene, levelDataUrl) {
                     }
                 ]);
             }
+
+            // === LAYER 3: Nebula clouds at various heights ===
+            const nebulaColors = [
+                [80, 40, 120],   // Purple
+                [40, 80, 120],   // Blue
+                [120, 60, 80],   // Pink/red
+                [60, 100, 80],   // Teal
+            ];
+
+            // Create nebula patches at different heights
+            const nebulaPositions = [
+                { x: 200, y: -4000, size: 300 },
+                { x: 600, y: -4500, size: 250 },
+                { x: 150, y: -7000, size: 350 },
+                { x: 650, y: -7800, size: 280 },
+                { x: 400, y: -10000, size: 400 },
+                { x: 100, y: -11500, size: 320 },
+                { x: 700, y: -12000, size: 280 },
+                { x: 350, y: -13500, size: 350 },
+            ];
+
+            nebulaPositions.forEach((nebula, idx) => {
+                const color = nebulaColors[idx % nebulaColors.length];
+                // Main nebula body
+                k.add([
+                    k.circle(nebula.size),
+                    k.pos(nebula.x, nebula.y),
+                    k.anchor("center"),
+                    k.color(...color),
+                    k.opacity(0.08),
+                    k.z(-7),
+                ]);
+                // Secondary glow
+                k.add([
+                    k.circle(nebula.size * 0.6),
+                    k.pos(nebula.x + 30, nebula.y - 20),
+                    k.anchor("center"),
+                    k.color(...color),
+                    k.opacity(0.12),
+                    k.z(-7),
+                ]);
+            });
+
+            // === LAYER 4: Distant planets/moons ===
+            // Small moon mid-level
+            k.add([
+                k.circle(40),
+                k.pos(700, -5500),
+                k.anchor("center"),
+                k.color(180, 180, 190),
+                k.opacity(0.6),
+                k.z(-6),
+            ]);
+            // Moon crater detail
+            k.add([
+                k.circle(8),
+                k.pos(690, -5510),
+                k.anchor("center"),
+                k.color(140, 140, 150),
+                k.opacity(0.4),
+                k.z(-6),
+            ]);
+
+            // Distant planet upper level
+            k.add([
+                k.circle(60),
+                k.pos(100, -9000),
+                k.anchor("center"),
+                k.color(180, 120, 100),
+                k.opacity(0.5),
+                k.z(-6),
+            ]);
+            // Planet ring
+            k.add([
+                k.rect(140, 8, { radius: 4 }),
+                k.pos(100, -9000),
+                k.anchor("center"),
+                k.color(200, 160, 140),
+                k.opacity(0.3),
+                k.z(-6),
+                k.rotate(-15),
+            ]);
+
+            // === LAYER 5: Space station/satellite elements ===
+            // Satellite near bottom
+            k.add([
+                k.rect(30, 6),
+                k.pos(650, -1500),
+                k.anchor("center"),
+                k.color(150, 150, 160),
+                k.opacity(0.7),
+                k.z(-5),
+                k.rotate(25),
+            ]);
+            k.add([
+                k.rect(6, 20),
+                k.pos(650, -1500),
+                k.anchor("center"),
+                k.color(100, 150, 200),
+                k.opacity(0.6),
+                k.z(-5),
+                k.rotate(25),
+            ]);
+
+            // Space debris/asteroids scattered
+            const asteroidPositions = [
+                { x: 750, y: -3000, size: 12, rot: 30 },
+                { x: 50, y: -5000, size: 8, rot: -20 },
+                { x: 780, y: -8000, size: 15, rot: 45 },
+                { x: 30, y: -10500, size: 10, rot: -35 },
+                { x: 770, y: -13000, size: 14, rot: 60 },
+            ];
+
+            asteroidPositions.forEach(ast => {
+                k.add([
+                    k.rect(ast.size, ast.size * 0.7, { radius: 2 }),
+                    k.pos(ast.x, ast.y),
+                    k.anchor("center"),
+                    k.color(100, 90, 80),
+                    k.opacity(0.5),
+                    k.z(-5),
+                    k.rotate(ast.rot),
+                ]);
+            });
+
+            // === LAYER 6: Destination glow at top ===
+            // Bright beacon/portal at the top
+            k.add([
+                k.circle(150),
+                k.pos(k.width() / 2, -14500),
+                k.anchor("center"),
+                k.color(255, 255, 255),
+                k.opacity(0.1),
+                k.z(-6),
+            ]);
+            k.add([
+                k.circle(80),
+                k.pos(k.width() / 2, -14500),
+                k.anchor("center"),
+                k.color(200, 255, 255),
+                k.opacity(0.2),
+                k.z(-6),
+                "beacon",
+                {
+                    pulseTime: 0,
+                    update() {
+                        this.pulseTime += k.dt();
+                        this.opacity = 0.15 + Math.sin(this.pulseTime * 2) * 0.1;
+                    }
+                }
+            ]);
         }
 
         // Add floating dust/particles for Gothic theme (Level 2 only)
@@ -121,7 +294,7 @@ export function levelScene(k, levelNum, levelName, nextScene, levelDataUrl) {
 
         // Camera follows player
         player.onUpdate(() => {
-            k.camPos(player.pos);
+            k.setCamPos(player.pos);
         });
 
         // Death handler
