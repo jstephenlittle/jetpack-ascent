@@ -1,4 +1,5 @@
 import { SCENES, GAME_STATE } from "../constants.js";
+import { GAME_CONFIG } from "../config.js";
 import { createPlayer } from "../entities/player.js";
 import { loadLevel } from "../utils/levelLoader.js";
 
@@ -125,18 +126,8 @@ export function levelScene(k, levelNum, levelName, nextScene, levelDataUrl) {
 
         // Death handler
         player.on("death", () => {
-            if (GAME_STATE.lives <= 0) {
-                // Go to Game Over
-                k.go(SCENES.GAME_OVER);
-            } else {
-                // Respawn at checkpoint if available, otherwise at start
-                const respawnPos = player.checkpointPos ? player.checkpointPos.clone() : startPos.clone();
-                player.pos = respawnPos;
-                player.vel = k.vec2(0, 0);
-                player.fuel = player.maxFuel;
-                player.fallVelocity = 0;
-                player.isDangerousFall = false;
-            }
+            // Go to Game Over (health reached 0)
+            k.go(SCENES.GAME_OVER);
         });
 
         // Handle doorway entry
@@ -183,32 +174,55 @@ export function levelScene(k, levelNum, levelName, nextScene, levelDataUrl) {
             k.fixed(),
         ]);
 
-        // Show lives (dynamic)
-        const livesText = k.add([
-            k.text(`Lives: ${GAME_STATE.lives}`, {
-                size: 14,
-            }),
-            k.pos(20, 40),
-            k.color(255, 100, 100),
-            k.fixed(),
-            {
-                update() {
-                    this.text = `Lives: ${GAME_STATE.lives}`;
-                }
-            }
-        ]);
-
-        // Fuel meter
-        const fuelBarBg = k.add([
+        // Health bar
+        k.add([
             k.rect(104, 14),
-            k.pos(20, 60),
+            k.pos(20, 40),
             k.color(50, 50, 50),
             k.fixed(),
         ]);
 
-        const fuelBar = k.add([
+        k.add([
             k.rect(100, 10),
-            k.pos(22, 62),
+            k.pos(22, 42),
+            k.color(255, 100, 100),
+            k.fixed(),
+            {
+                update() {
+                    const healthPercent = GAME_STATE.health / GAME_STATE.maxHealth;
+                    this.width = 100 * healthPercent;
+                    // Change color based on health level
+                    if (healthPercent > 0.6) {
+                        this.color = k.rgb(100, 255, 100); // Green - healthy
+                    } else if (healthPercent > 0.3) {
+                        this.color = k.rgb(255, 200, 100); // Yellow - warning
+                    } else {
+                        this.color = k.rgb(255, 100, 100); // Red - danger
+                    }
+                }
+            }
+        ]);
+
+        k.add([
+            k.text("HEALTH", {
+                size: 10,
+            }),
+            k.pos(20, 58),
+            k.color(150, 150, 150),
+            k.fixed(),
+        ]);
+
+        // Fuel meter
+        k.add([
+            k.rect(104, 14),
+            k.pos(20, 75),
+            k.color(50, 50, 50),
+            k.fixed(),
+        ]);
+
+        k.add([
+            k.rect(100, 10),
+            k.pos(22, 77),
             k.color(100, 200, 255),
             k.fixed(),
             {
@@ -231,33 +245,33 @@ export function levelScene(k, levelNum, levelName, nextScene, levelDataUrl) {
             k.text("FUEL", {
                 size: 10,
             }),
-            k.pos(20, 78),
+            k.pos(20, 93),
             k.color(150, 150, 150),
             k.fixed(),
         ]);
 
         // Fall meter
-        const fallMeterBg = k.add([
+        k.add([
             k.rect(104, 14),
-            k.pos(20, 95),
+            k.pos(20, 110),
             k.color(50, 50, 50),
             k.fixed(),
         ]);
 
-        const fallMeter = k.add([
+        k.add([
             k.rect(0, 10),
-            k.pos(22, 97),
+            k.pos(22, 112),
             k.color(100, 255, 100),
             k.fixed(),
             {
                 update() {
-                    const fallPercent = Math.min(player.fallVelocity / player.fallDamageThreshold, 1.0);
+                    const fallPercent = Math.min(player.fallVelocity / GAME_CONFIG.FALL_DAMAGE_MAX_VELOCITY, 1.0);
                     this.width = 100 * fallPercent;
 
                     // Color code based on danger level
-                    if (fallPercent < 0.5) {
+                    if (fallPercent < 0.4) {
                         this.color = k.rgb(100, 255, 100); // Green - safe
-                    } else if (fallPercent < 0.8) {
+                    } else if (fallPercent < 0.7) {
                         this.color = k.rgb(255, 200, 100); // Yellow - warning
                     } else {
                         this.color = k.rgb(255, 100, 100); // Red - dangerous
@@ -270,7 +284,7 @@ export function levelScene(k, levelNum, levelName, nextScene, levelDataUrl) {
             k.text("FALL", {
                 size: 10,
             }),
-            k.pos(20, 113),
+            k.pos(20, 128),
             k.color(150, 150, 150),
             k.fixed(),
         ]);

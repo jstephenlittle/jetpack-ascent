@@ -1,5 +1,6 @@
 import kaplay from "kaplay";
 import { SCENES } from "./constants.js";
+import { GAME_CONFIG } from "./config.js";
 import { mainMenuScene } from "./scenes/mainMenu.js";
 import { initLevelScenes } from "./scenes/level.js";
 import { transitionScene } from "./scenes/transition.js";
@@ -16,8 +17,8 @@ const k = kaplay({
     debug: true,
 });
 
-// Set gravity using method instead of config
-k.setGravity(1600);
+// Set gravity from config
+k.setGravity(GAME_CONFIG.PLAYER_GRAVITY);
 
 // Initialize all scenes
 mainMenuScene(k);

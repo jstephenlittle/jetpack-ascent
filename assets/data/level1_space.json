@@ -323,23 +323,25 @@
 
     {"type": "fuelCell", "x": 220, "y": -600},
     {"type": "fuelCell", "x": 1220, "y": -600},
+    {"type": "healthPickup", "x": 700, "y": -800},
 
     {"type": "shield", "x": 700, "y": -1060},
     {"type": "fuelCell", "x": 350, "y": -1420},
     {"type": "fuelCell", "x": 1050, "y": -1420},
     {"type": "megaBoost", "x": 700, "y": -1840},
-    {"type": "extraLife", "x": 700, "y": -2340},
+    {"type": "healthPickup", "x": 700, "y": -2340},
 
     {"type": "shield", "x": 100, "y": -3280},
     {"type": "fuelCell", "x": 700, "y": -3280},
     {"type": "shield", "x": 1300, "y": -3280},
     {"type": "megaBoost", "x": 450, "y": -3940},
     {"type": "megaBoost", "x": 950, "y": -3940},
+    {"type": "healthPickup", "x": 700, "y": -4200},
 
     {"type": "fuelCell", "x": 200, "y": -4640},
     {"type": "fuelCell", "x": 1200, "y": -4640},
     {"type": "shield", "x": 700, "y": -5180},
-    {"type": "extraLife", "x": 700, "y": -5340},
+    {"type": "healthPickup", "x": 700, "y": -5340},
 
     {"type": "fuelCell", "x": 300, "y": -6180},
     {"type": "fuelCell", "x": 1100, "y": -6180},
@@ -347,7 +349,9 @@
     {"type": "megaBoost", "x": 400, "y": -7180},
     {"type": "megaBoost", "x": 1000, "y": -7180},
     {"type": "fuelCell", "x": 700, "y": -7800},
-    {"type": "extraLife", "x": 700, "y": -8340},
+    {"type": "healthPickup", "x": 700, "y": -8340},
+    {"type": "healthPickup", "x": 400, "y": -8800},
+    {"type": "healthPickup", "x": 1000, "y": -8800},
 
     {"type": "shield", "x": 150, "y": -9360},
     {"type": "fuelCell", "x": 700, "y": -9360},
@@ -355,7 +359,7 @@
     {"type": "megaBoost", "x": 500, "y": -10320},
     {"type": "megaBoost", "x": 900, "y": -10320},
     {"type": "fuelCell", "x": 700, "y": -11000},
-    {"type": "extraLife", "x": 700, "y": -11340},
+    {"type": "healthPickup", "x": 700, "y": -11340},
 
     {"type": "shield", "x": 150, "y": -12160},
     {"type": "fuelCell", "x": 550, "y": -12160},
@@ -365,7 +369,7 @@
     {"type": "megaBoost", "x": 950, "y": -12900},
     {"type": "fuelCell", "x": 300, "y": -13460},
     {"type": "fuelCell", "x": 1100, "y": -13460},
-    {"type": "extraLife", "x": 700, "y": -14020},
+    {"type": "healthPickup", "x": 700, "y": -14020},
     {"type": "shield", "x": 700, "y": -14400}
   ]
 }

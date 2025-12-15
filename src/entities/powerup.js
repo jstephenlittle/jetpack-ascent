@@ -152,46 +152,63 @@ export function createMegaBoost(k, x, y) {
 }
 
 /**
- * Create an Extra Life power-up (rare)
- * Adds +1 life
+ * Create a Health pickup
+ * Restores health to the player
  * @param {object} k - KAPLAY instance
  * @param {number} x - X position
  * @param {number} y - Y position
  * @returns {object} Power-up game object
  */
-export function createExtraLife(k, x, y) {
+export function createHealthPickup(k, x, y) {
     const powerup = k.add([
         k.rect(16, 16),
         k.pos(x, y),
         k.anchor("center"),
         k.area(),
-        k.color(255, 100, 255),
+        k.color(255, 100, 100), // Red for health
         "powerup",
-        "extraLife",
+        "healthPickup",
         {
             floatTime: 0,
             pulseTime: 0,
         },
     ]);
 
+    // Add a cross shape indicator
+    const cross1 = powerup.add([
+        k.rect(12, 4),
+        k.anchor("center"),
+        k.color(255, 255, 255),
+    ]);
+    const cross2 = powerup.add([
+        k.rect(4, 12),
+        k.anchor("center"),
+        k.color(255, 255, 255),
+    ]);
+
     powerup.onUpdate(() => {
         // Float animation
         powerup.floatTime += k.dt();
-        const floatOffset = Math.sin(powerup.floatTime * 2) * 8;
+        const floatOffset = Math.sin(powerup.floatTime * 2) * 5;
         powerup.pos.y = y + floatOffset;
 
-        // Pulse and glow
+        // Pulse effect
         powerup.pulseTime += k.dt();
-        const scale = 1 + Math.sin(powerup.pulseTime * 3) * 0.3;
+        const scale = 1 + Math.sin(powerup.pulseTime * 3) * 0.15;
         powerup.scale = k.vec2(scale, scale);
-
-        const glow = 0.7 + Math.sin(powerup.pulseTime * 5) * 0.3;
-        powerup.opacity = glow;
     });
 
     powerup.onCollide("player", (player) => {
-        // Add one life
-        GAME_STATE.lives += 1;
+        // Restore health
+        const healAmount = GAME_CONFIG.HEALTH_PICKUP_AMOUNT;
+        GAME_STATE.health = Math.min(GAME_STATE.health + healAmount, GAME_STATE.maxHealth);
+
+        // Flash green to show healing
+        const originalColor = player.color.clone();
+        player.color = k.rgb(100, 255, 100);
+        k.wait(0.2, () => {
+            player.color = originalColor;
+        });
 
         k.destroy(powerup);
     });

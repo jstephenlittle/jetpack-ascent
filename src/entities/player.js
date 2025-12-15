@@ -1,5 +1,27 @@
-import { GAME_CONFIG, applyDifficulty } from "../config.js";
+import { GAME_CONFIG, applyDifficulty, getDifficultyConfig } from "../config.js";
 import { GAME_STATE } from "../constants.js";
+
+/**
+ * Calculate fall damage based on velocity
+ * Returns 0 if below threshold, scales linearly to max damage
+ */
+function calculateFallDamage(velocity, difficulty) {
+    if (velocity < GAME_CONFIG.FALL_DAMAGE_MIN_VELOCITY) {
+        return 0;
+    }
+
+    // Scale damage based on velocity
+    const velocityRange = GAME_CONFIG.FALL_DAMAGE_MAX_VELOCITY - GAME_CONFIG.FALL_DAMAGE_MIN_VELOCITY;
+    const damageRange = GAME_CONFIG.FALL_DAMAGE_MAX - GAME_CONFIG.FALL_DAMAGE_MIN;
+    const velocityAboveMin = velocity - GAME_CONFIG.FALL_DAMAGE_MIN_VELOCITY;
+    const damagePercent = Math.min(velocityAboveMin / velocityRange, 1.0);
+
+    const baseDamage = GAME_CONFIG.FALL_DAMAGE_MIN + (damageRange * damagePercent);
+
+    // Apply difficulty multiplier
+    const config = getDifficultyConfig(difficulty);
+    return Math.round(baseDamage * config.damageTaken);
+}
 
 /**
  * Create the player character (Jetty)
@@ -12,6 +34,11 @@ export function createPlayer(k, x, y) {
     console.log(`[PLAYER] Creating player at position (${x}, ${y})`);
     const difficulty = GAME_STATE.difficulty;
     console.log(`[PLAYER] Difficulty: ${difficulty}`);
+
+    // Initialize health based on difficulty
+    const maxHealth = applyDifficulty(GAME_CONFIG.DEFAULT_HEALTH, "healthRate", difficulty);
+    GAME_STATE.maxHealth = maxHealth;
+    GAME_STATE.health = maxHealth;
 
     // Player entity with placeholder rectangle
     const player = k.add([
@@ -29,8 +56,7 @@ export function createPlayer(k, x, y) {
             isThrusting: false,
             fallVelocity: 0,
             moveSpeed: GAME_CONFIG.PLAYER_MOVE_SPEED,
-            isDangerousFall: false,
-            fallDamageThreshold: applyDifficulty(GAME_CONFIG.FALL_DAMAGE_THRESHOLD, "fallTolerance", difficulty),
+            lastLandingVelocity: 0, // Track velocity at moment of landing
         },
     ]);
 
@@ -38,7 +64,8 @@ export function createPlayer(k, x, y) {
         pos: player.pos,
         fuel: player.fuel,
         maxFuel: player.maxFuel,
-        moveSpeed: player.moveSpeed
+        health: GAME_STATE.health,
+        maxHealth: GAME_STATE.maxHealth
     });
 
     // Jetpack flame visual (hidden by default)
@@ -55,14 +82,15 @@ export function createPlayer(k, x, y) {
 
     // Collision with platforms - check for fall damage
     player.onCollide("platform", () => {
-        if (player.isDangerousFall) {
+        const fallDamage = calculateFallDamage(player.lastLandingVelocity, difficulty);
+
+        if (fallDamage > 0) {
             // Check for shield
             if (player.hasShield) {
                 player.hasShield = false;
                 const shieldEffect = player.get("shieldEffect")[0];
                 if (shieldEffect) k.destroy(shieldEffect);
-                player.isDangerousFall = false;
-                player.fallVelocity = 0;
+                player.lastLandingVelocity = 0;
                 // Flash blue to show shield absorbed hit
                 const originalColor = player.color.clone();
                 player.color = k.rgb(100, 200, 255);
@@ -73,16 +101,17 @@ export function createPlayer(k, x, y) {
             }
 
             // Take fall damage
-            GAME_STATE.lives -= 1;
-            k.shake(10); // Screen shake on fall damage
-            player.isDangerousFall = false;
-            player.fallVelocity = 0;
+            GAME_STATE.health -= fallDamage;
 
-            if (GAME_STATE.lives <= 0) {
-                // Game Over will be handled by scene
+            // Screen shake proportional to damage
+            const shakeAmount = 5 + (fallDamage / GAME_CONFIG.FALL_DAMAGE_MAX) * 10;
+            k.shake(shakeAmount);
+
+            if (GAME_STATE.health <= 0) {
+                GAME_STATE.health = 0;
                 player.trigger("death");
             } else {
-                // Flash player to show damage
+                // Flash player red to show damage
                 const originalColor = player.color.clone();
                 player.color = k.rgb(255, 100, 100);
                 k.wait(0.2, () => {
@@ -90,6 +119,10 @@ export function createPlayer(k, x, y) {
                 });
             }
         }
+
+        // Reset fall tracking on landing
+        player.lastLandingVelocity = 0;
+        player.fallVelocity = 0;
     });
 
     // Movement and jetpack input
@@ -131,26 +164,13 @@ export function createPlayer(k, x, y) {
         // Track fall velocity for fall damage system
         if (player.vel.y > 0) {
             player.fallVelocity = player.vel.y;
-
-            // Check if fall is dangerous
-            if (player.fallVelocity > player.fallDamageThreshold) {
-                player.isDangerousFall = true;
-            }
-        } else {
-            // Reset dangerous fall state when moving upward or on ground
-            if (player.isGrounded()) {
-                player.isDangerousFall = false;
-                player.fallVelocity = 0;
-            }
+            // Store this as potential landing velocity
+            player.lastLandingVelocity = player.vel.y;
+        } else if (player.isGrounded()) {
+            // Reset when on ground and not falling
+            player.fallVelocity = 0;
         }
 
-        // Keep player within horizontal bounds
-        const margin = 20;
-        if (player.pos.x < margin) {
-            player.pos.x = margin;
-        } else if (player.pos.x > k.width() - margin) {
-            player.pos.x = k.width() - margin;
-        }
     });
 
     return player;

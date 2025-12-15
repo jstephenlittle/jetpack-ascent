@@ -13,6 +13,7 @@ export const SCENES = {
 export const GAME_STATE = {
     currentLevel: 1,
     difficulty: "medium",
-    lives: 3,
+    health: 100,
+    maxHealth: 100,
     score: 0,
 };
