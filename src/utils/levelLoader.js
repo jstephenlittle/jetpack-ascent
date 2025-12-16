@@ -107,26 +107,83 @@ export async function loadLevel(k, levelData) {
     });
     console.log(`[LEVEL LOADER] Created ${powerupsCreated} power-ups`);
 
-    // Create doorway
+    // Create doorway - grand exit portal
     console.log(`[LEVEL LOADER] Creating doorway at (${levelData.doorwayPosition[0]}, ${levelData.doorwayPosition[1]})`);
-    const doorway = k.add([
-        k.rect(48, 64),
+
+    // Outer portal frame/glow
+    const portalGlow = k.add([
+        k.rect(64, 80),
         k.pos(levelData.doorwayPosition[0], levelData.doorwayPosition[1]),
         k.anchor("center"),
-        k.area(),
-        k.color(100, 255, 255),
-        k.opacity(0.8),
-        "doorway",
+        k.color(80, 200, 255),
+        k.opacity(0.3),
+        k.outline(3, k.rgb(100, 255, 255)),
+        "portalGlow",
         {
-            glowTime: 0,
+            pulseTime: 0,
         },
     ]);
 
-    // Doorway glow animation
+    // Main doorway
+    const doorway = k.add([
+        k.rect(48, 68),
+        k.pos(levelData.doorwayPosition[0], levelData.doorwayPosition[1]),
+        k.anchor("center"),
+        k.area(),
+        k.color(150, 255, 255),
+        k.outline(2, k.rgb(200, 255, 255)),
+        "doorway",
+        {
+            glowTime: 0,
+            waveTime: 0,
+        },
+    ]);
+
+    // Inner energy core
+    const portalCore = k.add([
+        k.rect(32, 52),
+        k.pos(levelData.doorwayPosition[0], levelData.doorwayPosition[1]),
+        k.anchor("center"),
+        k.color(255, 255, 255),
+        k.opacity(0.6),
+        "portalCore",
+        {
+            shimmerTime: 0,
+        },
+    ]);
+
+    // Portal animations
+    portalGlow.onUpdate(() => {
+        portalGlow.pulseTime += k.dt();
+        // Slow outer pulse
+        const pulse = 0.2 + Math.sin(portalGlow.pulseTime * 2) * 0.15;
+        portalGlow.opacity = pulse;
+        // Slight scale breathing
+        const scale = 1 + Math.sin(portalGlow.pulseTime * 1.5) * 0.05;
+        portalGlow.scale = k.vec2(scale, scale);
+    });
+
     doorway.onUpdate(() => {
         doorway.glowTime += k.dt();
-        const glow = (Math.sin(doorway.glowTime * 3) + 1) * 0.5;
-        doorway.opacity = 0.5 + glow * 0.3;
+        doorway.waveTime += k.dt();
+
+        // Color shift between cyan and white
+        const shift = 0.7 + Math.sin(doorway.glowTime * 3) * 0.3;
+        doorway.color = k.rgb(150 + 105 * shift, 255, 255);
+
+        // Energy wave effect
+        const wave = Math.sin(doorway.waveTime * 4);
+        doorway.opacity = 0.7 + wave * 0.2;
+    });
+
+    portalCore.onUpdate(() => {
+        portalCore.shimmerTime += k.dt();
+        // Rapid shimmer
+        const shimmer = 0.4 + Math.sin(portalCore.shimmerTime * 8) * 0.3;
+        portalCore.opacity = shimmer;
+        // Color flicker
+        const flicker = Math.sin(portalCore.shimmerTime * 6) > 0;
+        portalCore.color = flicker ? k.rgb(255, 255, 255) : k.rgb(200, 255, 255);
     });
 
     const startPos = k.vec2(levelData.startPosition[0], levelData.startPosition[1]);

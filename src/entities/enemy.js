@@ -99,18 +99,21 @@ function dealDamageToPlayer(k, player) {
 export function createRollerBot(k, x, y) {
     const speed = applyDifficulty(GAME_CONFIG.ROLLER_BOT_SPEED, "enemySpeed", GAME_STATE.difficulty);
 
+    // Spiked wheel enemy - uses circle for round appearance
     const bot = k.add([
-        k.rect(24, 24),
+        k.circle(12),
         k.pos(x, y),
         k.anchor("center"),
         k.area(),
         k.body(),
-        k.color(200, 80, 80), // Red metallic for hostile robots
+        k.color(220, 60, 60),
+        k.outline(3, k.rgb(80, 80, 90)),
         "enemy",
         "rollerBot",
         {
             speed: speed,
-            direction: 1, // 1 = right, -1 = left
+            direction: 1,
+            glowTime: 0,
         },
     ]);
 
@@ -130,7 +133,12 @@ export function createRollerBot(k, x, y) {
             bot.direction *= -1;
         }
 
-        // Simple rotation animation
+        // Pulsing glow effect
+        bot.glowTime += k.dt();
+        const pulse = 0.8 + Math.sin(bot.glowTime * 6) * 0.2;
+        bot.color = k.rgb(220 * pulse, 60, 60);
+
+        // Rotation animation
         bot.angle += k.dt() * bot.speed * 0.5 * bot.direction;
     });
 
@@ -158,20 +166,24 @@ export function createRollerBot(k, x, y) {
 export function createHoverDrone(k, x, y, range = 150) {
     const speed = applyDifficulty(GAME_CONFIG.HOVER_DRONE_SPEED, "enemySpeed", GAME_STATE.difficulty);
 
+    // Flying drone enemy - wide saucer shape
     const drone = k.add([
-        k.rect(28, 20),
+        k.rect(32, 12),
         k.pos(x, y),
         k.anchor("center"),
         k.area(),
-        k.color(150, 100, 200),
+        k.color(180, 100, 220),
+        k.outline(2, k.rgb(100, 60, 140)),
         "enemy",
         "hoverDrone",
         {
             speed: speed,
             startX: x,
+            startY: y,
             range: range,
             direction: 1,
             bobTime: 0,
+            thrusterTime: 0,
         },
     ]);
 
@@ -189,7 +201,12 @@ export function createHoverDrone(k, x, y, range = 150) {
         // Bobbing motion
         drone.bobTime += dt * 2;
         const bobOffset = Math.sin(drone.bobTime) * 5;
-        drone.pos.y = y + bobOffset;
+        drone.pos.y = drone.startY + bobOffset;
+
+        // Thruster glow effect - pulsing purple
+        drone.thrusterTime += dt;
+        const pulse = 0.7 + Math.sin(drone.thrusterTime * 10) * 0.3;
+        drone.color = k.rgb(180 * pulse, 100, 220);
     });
 
     // Damage player on collision
@@ -213,12 +230,14 @@ export function createHoverDrone(k, x, y, range = 150) {
  * @returns {object} Enemy game object
  */
 export function createDropBot(k, x, y) {
+    // Ceiling mine enemy - triangular/arrow shape pointing down
     const bot = k.add([
-        k.rect(24, 24),
+        k.rect(20, 28),
         k.pos(x, y),
         k.anchor("top"),
         k.area(),
-        k.color(200, 150, 50),
+        k.color(220, 160, 40),
+        k.outline(2, k.rgb(140, 100, 20)),
         "enemy",
         "dropBot",
         {
@@ -226,11 +245,16 @@ export function createDropBot(k, x, y) {
             isWarning: false,
             warningTimer: 0,
             detectRange: 80,
+            pulseTime: 0,
         },
     ]);
 
     bot.onUpdate(() => {
         if (bot.isHanging) {
+            // Idle pulse when hanging
+            bot.pulseTime += k.dt();
+            const idlePulse = 0.9 + Math.sin(bot.pulseTime * 2) * 0.1;
+
             // Check for player below
             const player = k.get("player")[0];
             if (player) {
@@ -242,26 +266,30 @@ export function createDropBot(k, x, y) {
                 }
             }
 
-            // Warning phase
+            // Warning phase - rapid red blinking
             if (bot.isWarning) {
                 bot.warningTimer += k.dt();
 
-                // Blink red
-                const blink = Math.sin(bot.warningTimer * 15) > 0;
-                bot.color = blink ? k.rgb(255, 50, 50) : k.rgb(200, 150, 50);
+                // Rapid blink between red and orange
+                const blink = Math.sin(bot.warningTimer * 20) > 0;
+                bot.color = blink ? k.rgb(255, 50, 50) : k.rgb(255, 180, 50);
 
                 if (bot.warningTimer > GAME_CONFIG.DROPBOT_WARNING_TIME) {
                     // Drop!
                     bot.isHanging = false;
                     bot.isWarning = false;
+                    bot.color = k.rgb(255, 80, 40); // Angry red-orange when falling
 
                     // Add body for falling
                     bot.use(k.body());
                 }
+            } else {
+                // Normal idle color
+                bot.color = k.rgb(220 * idlePulse, 160 * idlePulse, 40);
             }
         } else {
-            // Falling - rotate
-            bot.angle += k.dt() * 5;
+            // Falling - spin rapidly
+            bot.angle += k.dt() * 8;
         }
     });
 

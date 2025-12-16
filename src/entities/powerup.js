@@ -10,28 +10,32 @@ import { GAME_STATE } from "../constants.js";
  * @returns {object} Power-up game object
  */
 export function createFuelCell(k, x, y) {
+    // Battery/fuel canister - green energy
     const powerup = k.add([
-        k.rect(16, 16),
+        k.rect(12, 20),
         k.pos(x, y),
         k.anchor("center"),
         k.area(),
-        k.color(100, 255, 100),
+        k.color(80, 220, 100),
+        k.outline(2, k.rgb(40, 140, 60)),
         "powerup",
         "fuelCell",
         {
             floatTime: 0,
-            rotateSpeed: 2,
+            glowTime: 0,
         },
     ]);
 
     powerup.onUpdate(() => {
         // Float animation
         powerup.floatTime += k.dt();
-        const floatOffset = Math.sin(powerup.floatTime * 2) * 5;
+        const floatOffset = Math.sin(powerup.floatTime * 2) * 4;
         powerup.pos.y = y + floatOffset;
 
-        // Rotate
-        powerup.angle += k.dt() * powerup.rotateSpeed;
+        // Pulsing glow
+        powerup.glowTime += k.dt();
+        const pulse = 0.7 + Math.sin(powerup.glowTime * 4) * 0.3;
+        powerup.color = k.rgb(80, 220 * pulse, 100);
     });
 
     powerup.onCollide("player", (player) => {
@@ -56,12 +60,14 @@ export function createFuelCell(k, x, y) {
  * @returns {object} Power-up game object
  */
 export function createShield(k, x, y) {
+    // Shield orb - cyan energy sphere
     const powerup = k.add([
-        k.circle(8),
+        k.circle(10),
         k.pos(x, y),
         k.anchor("center"),
         k.area(),
-        k.color(100, 200, 255),
+        k.color(100, 220, 255),
+        k.outline(2, k.rgb(60, 160, 220)),
         "powerup",
         "shield",
         {
@@ -73,13 +79,17 @@ export function createShield(k, x, y) {
     powerup.onUpdate(() => {
         // Float animation
         powerup.floatTime += k.dt();
-        const floatOffset = Math.sin(powerup.floatTime * 2) * 5;
+        const floatOffset = Math.sin(powerup.floatTime * 2) * 4;
         powerup.pos.y = y + floatOffset;
 
-        // Pulse animation
+        // Pulse animation with color shift
         powerup.pulseTime += k.dt();
-        const scale = 1 + Math.sin(powerup.pulseTime * 4) * 0.2;
+        const scale = 1 + Math.sin(powerup.pulseTime * 3) * 0.15;
         powerup.scale = k.vec2(scale, scale);
+
+        // Cyan to white shimmer
+        const shimmer = 0.8 + Math.sin(powerup.pulseTime * 5) * 0.2;
+        powerup.color = k.rgb(100 + 80 * shimmer, 220, 255);
     });
 
     powerup.onCollide("player", (player) => {
@@ -117,28 +127,32 @@ export function createShield(k, x, y) {
  * @returns {object} Power-up game object
  */
 export function createMegaBoost(k, x, y) {
+    // Rocket boost - orange/yellow energy arrow pointing up
     const powerup = k.add([
-        k.rect(16, 20),
+        k.rect(14, 22),
         k.pos(x, y),
         k.anchor("center"),
         k.area(),
-        k.color(255, 200, 50),
+        k.color(255, 180, 50),
+        k.outline(2, k.rgb(200, 120, 30)),
         "powerup",
         "megaBoost",
         {
             floatTime: 0,
-            rotateSpeed: 3,
+            flameTime: 0,
         },
     ]);
 
     powerup.onUpdate(() => {
-        // Float animation
+        // Hover up and down more dramatically
         powerup.floatTime += k.dt();
-        const floatOffset = Math.sin(powerup.floatTime * 2) * 5;
+        const floatOffset = Math.sin(powerup.floatTime * 3) * 6;
         powerup.pos.y = y + floatOffset;
 
-        // Rotate
-        powerup.angle += k.dt() * powerup.rotateSpeed;
+        // Flame flicker effect
+        powerup.flameTime += k.dt();
+        const flicker = 0.7 + Math.sin(powerup.flameTime * 12) * 0.3;
+        powerup.color = k.rgb(255, 180 * flicker, 50);
     });
 
     powerup.onCollide("player", (player) => {
@@ -160,12 +174,14 @@ export function createMegaBoost(k, x, y) {
  * @returns {object} Power-up game object
  */
 export function createHealthPickup(k, x, y) {
+    // Health kit - red with white cross (no child objects to avoid WebGL issues)
     const powerup = k.add([
-        k.rect(16, 16),
+        k.rect(18, 18),
         k.pos(x, y),
         k.anchor("center"),
         k.area(),
-        k.color(255, 100, 100), // Red for health
+        k.color(220, 60, 80),
+        k.outline(2, k.rgb(160, 40, 60)),
         "powerup",
         "healthPickup",
         {
@@ -174,28 +190,21 @@ export function createHealthPickup(k, x, y) {
         },
     ]);
 
-    // Add a cross shape indicator
-    const cross1 = powerup.add([
-        k.rect(12, 4),
-        k.anchor("center"),
-        k.color(255, 255, 255),
-    ]);
-    const cross2 = powerup.add([
-        k.rect(4, 12),
-        k.anchor("center"),
-        k.color(255, 255, 255),
-    ]);
-
     powerup.onUpdate(() => {
         // Float animation
         powerup.floatTime += k.dt();
-        const floatOffset = Math.sin(powerup.floatTime * 2) * 5;
+        const floatOffset = Math.sin(powerup.floatTime * 2) * 4;
         powerup.pos.y = y + floatOffset;
 
-        // Pulse effect
+        // Heartbeat pulse effect
         powerup.pulseTime += k.dt();
-        const scale = 1 + Math.sin(powerup.pulseTime * 3) * 0.15;
+        const beat = Math.sin(powerup.pulseTime * 4);
+        const scale = beat > 0.7 ? 1.15 : 1 + beat * 0.05;
         powerup.scale = k.vec2(scale, scale);
+
+        // Gentle color pulse
+        const pulse = 0.85 + Math.sin(powerup.pulseTime * 3) * 0.15;
+        powerup.color = k.rgb(220 * pulse, 60, 80);
     });
 
     powerup.onCollide("player", (player) => {
