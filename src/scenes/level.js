@@ -352,10 +352,15 @@ export function levelScene(k, levelNum, levelName, nextScene, levelDataUrl) {
         const player = createPlayer(k, startPos.x, startPos.y);
         console.log(`[LEVEL ${levelNum}] Player created:`, player);
 
-        // Camera follows player with Y clamping (so floor stays at bottom of viewport)
+        // Camera follows player with clamping (floor at bottom, tower walls at sides)
         const cameraMaxY = 340;  // Clamp camera so floor (y:600) appears at bottom of 600px viewport
+        const towerWidth = 1600;  // Tower is 1600 pixels wide
         player.onUpdate(() => {
-            const camX = player.pos.x;
+            // Clamp X so viewport stays within tower boundaries
+            const halfViewportWidth = k.width() / 2;
+            const cameraMinX = halfViewportWidth;  // Left edge of viewport at tower left wall
+            const cameraMaxX = towerWidth - halfViewportWidth;  // Right edge at tower right wall
+            const camX = Math.max(cameraMinX, Math.min(player.pos.x, cameraMaxX));
             const camY = Math.min(player.pos.y, cameraMaxY);  // Don't let camera go below floor level
             k.setCamPos(k.vec2(camX, camY));
         });
@@ -564,6 +569,36 @@ export function levelScene(k, levelNum, levelName, nextScene, levelDataUrl) {
             k.pos(20, 128),
             k.color(150, 150, 150),
             k.fixed(),
+        ]);
+
+        // Star counter
+        // Reset stars collected at level start
+        GAME_STATE.starsCollected = 0;
+
+        // Star icon (small yellow star)
+        k.add([
+            k.rect(8, 8),
+            k.pos(24, 150),
+            k.anchor("center"),
+            k.color(255, 230, 100),
+            k.rotate(45),
+            k.fixed(),
+        ]);
+
+        // Star count text
+        k.add([
+            k.text("0 / 0", {
+                size: 14,
+            }),
+            k.pos(36, 150),
+            k.anchor("left"),
+            k.color(255, 230, 100),
+            k.fixed(),
+            {
+                update() {
+                    this.text = `${GAME_STATE.starsCollected} / ${GAME_STATE.totalStars}`;
+                }
+            }
         ]);
 
         // R key to restart (after death)

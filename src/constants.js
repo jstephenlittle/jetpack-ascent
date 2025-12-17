@@ -16,4 +16,6 @@ export const GAME_STATE = {
     health: 100,
     maxHealth: 100,
     score: 0,
+    starsCollected: 0,
+    totalStars: 0,
 };

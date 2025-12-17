@@ -1,6 +1,7 @@
 import { createPlatform, createBreakawayPlatform, createBouncePad, createRechargeStation, createCheckpoint } from "../entities/platform.js";
 import { createRollerBot, createHoverDrone, createDropBot, createMine } from "../entities/enemy.js";
 import { createFuelCell, createShield, createHealthPickup } from "../entities/powerup.js";
+import { createStar } from "../entities/collectible.js";
 import { GAME_STATE } from "../constants.js";
 import { getDifficultyConfig } from "../config.js";
 
@@ -106,6 +107,23 @@ export async function loadLevel(k, levelData) {
         }
     });
     console.log(`[LEVEL LOADER] Created ${powerupsCreated} power-ups`);
+
+    // Load collectibles (stars, gems, etc.)
+    GAME_STATE.totalStars = 0;
+    if (levelData.collectibles && levelData.collectibles.length > 0) {
+        console.log(`[LEVEL LOADER] Loading ${levelData.collectibles.length} collectibles`);
+        let collectiblesCreated = 0;
+        levelData.collectibles.forEach(collectible => {
+            switch (collectible.type) {
+                case "star":
+                    createStar(k, collectible.x, collectible.y);
+                    collectiblesCreated++;
+                    GAME_STATE.totalStars++;
+                    break;
+            }
+        });
+        console.log(`[LEVEL LOADER] Created ${collectiblesCreated} collectibles`);
+    }
 
     // Create doorway - grand exit portal
     console.log(`[LEVEL LOADER] Creating doorway at (${levelData.doorwayPosition[0]}, ${levelData.doorwayPosition[1]})`);

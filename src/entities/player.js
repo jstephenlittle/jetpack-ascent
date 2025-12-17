@@ -245,6 +245,37 @@ export function createPlayer(k, x, y) {
                 player.hasShield = false;
                 const shieldEffect = player.get("shieldEffect")[0];
                 if (shieldEffect) k.destroy(shieldEffect);
+
+                // Visual feedback: shield burst effect
+                const burstEffect = k.add([
+                    k.circle(30),
+                    k.pos(player.pos.x, player.pos.y),
+                    k.anchor("center"),
+                    k.color(100, 200, 255),
+                    k.opacity(0.8),
+                    k.scale(1),
+                    "shieldBurst",
+                ]);
+
+                // Expand and fade out
+                k.tween(
+                    k.vec2(1, 1),
+                    k.vec2(3, 3),
+                    0.3,
+                    (val) => burstEffect.scale = val,
+                    k.easings.easeOutQuad
+                );
+                k.tween(
+                    0.8,
+                    0,
+                    0.3,
+                    (val) => burstEffect.opacity = val,
+                    k.easings.easeOutQuad
+                ).onEnd(() => k.destroy(burstEffect));
+
+                // Small screen shake to indicate impact absorbed
+                k.shake(3);
+
                 player.lastLandingVelocity = 0;
                 return;
             }
