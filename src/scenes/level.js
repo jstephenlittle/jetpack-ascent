@@ -1,6 +1,7 @@
 import { SCENES, GAME_STATE } from "../constants.js";
 import { GAME_CONFIG } from "../config.js";
 import { createPlayer } from "../entities/player.js";
+import { createRechargeStation } from "../entities/platform.js";
 import { loadLevel } from "../utils/levelLoader.js";
 
 export function levelScene(k, levelNum, levelName, nextScene, levelDataUrl) {
@@ -24,29 +25,88 @@ export function levelScene(k, levelNum, levelName, nextScene, levelDataUrl) {
 
         // Add elaborate space background (Level 1 only)
         if (levelNum === 1) {
-            // === LAYER 1: Earth/Atmosphere at bottom (y: 600 to -2000) ===
+            // === GRADIENT BACKGROUND: Blue at bottom to black at top ===
+            const levelBottom = 800;  // Below floor
+            const levelTop = -15000;
+            const gradientHeight = levelBottom - levelTop;  // ~15800 units
+            const numBands = 20;  // Number of gradient bands
+            const bandHeight = gradientHeight / numBands;
 
-            // Earth curve at very bottom
+            for (let i = 0; i < numBands; i++) {
+                // Calculate color - blue at bottom (i=0), black at top (i=numBands-1)
+                const progress = i / (numBands - 1);  // 0 to 1
+                // Start with blue (60, 120, 180) and fade to black (20, 20, 60)
+                const r = Math.round(60 - progress * 40);
+                const g = Math.round(120 - progress * 100);
+                const b = Math.round(180 - progress * 120);
+
+                k.add([
+                    k.rect(2000, bandHeight + 50),  // Extra width and overlap to prevent gaps
+                    k.pos(-200, levelBottom - (i + 1) * bandHeight),
+                    k.color(r, g, b),
+                    k.opacity(0.5),
+                    k.z(-9),
+                    "gradientBand",
+                ]);
+            }
+
+            // === FLOOR: Full-width platform at bottom ===
+            const floorY = 600;
             k.add([
-                k.circle(800),
-                k.pos(k.width() / 2, 1200),
-                k.anchor("center"),
-                k.color(60, 120, 180),
-                k.opacity(0.4),
-                k.z(-9),
+                k.rect(1600, 40),
+                k.pos(0, floorY),
+                k.area(),
+                k.body({ isStatic: true }),
+                k.color(50, 70, 100),
+                k.outline(2, k.rgb(30, 50, 80)),
+                "platform",
+                "floor",
             ]);
 
-            // Atmosphere glow
+            // Floor surface detail
+            for (let x = 0; x < 1600; x += 80) {
+                k.add([
+                    k.rect(2, 30),
+                    k.pos(x, floorY + 5),
+                    k.color(35, 50, 75),
+                    k.opacity(0.6),
+                    "floorDecor",
+                ]);
+            }
+
+            // Recharge station on the floor (centered)
+            createRechargeStation(k, 700, floorY - 20, 200);
+
+            // === WALLS: Left and right boundaries ===
+            const wallHeight = 16000;
+            const wallWidth = 30;
+            const wallTop = -15000;
+
+            // Left wall (starts at floor level, goes up)
             k.add([
-                k.circle(850),
-                k.pos(k.width() / 2, 1250),
-                k.anchor("center"),
-                k.color(100, 180, 255),
-                k.opacity(0.15),
-                k.z(-9),
+                k.rect(wallWidth, wallHeight),
+                k.pos(-wallWidth, wallTop),
+                k.area(),
+                k.body({ isStatic: true }),
+                k.color(40, 55, 80),
+                k.outline(2, k.rgb(25, 40, 60)),
+                "platform",
+                "wall",
             ]);
 
-            // === LAYER 2: Scattered stars throughout ===
+            // Right wall (starts at floor level, goes up)
+            k.add([
+                k.rect(wallWidth, wallHeight),
+                k.pos(1600, wallTop),
+                k.area(),
+                k.body({ isStatic: true }),
+                k.color(40, 55, 80),
+                k.outline(2, k.rgb(25, 40, 60)),
+                "platform",
+                "wall",
+            ]);
+
+            // === LAYER 1: Scattered stars throughout ===
             for (let i = 0; i < 400; i++) {
                 const x = Math.random() * k.width();
                 const y = Math.random() * 16000 - 15000;
@@ -292,15 +352,59 @@ export function levelScene(k, levelNum, levelName, nextScene, levelDataUrl) {
         const player = createPlayer(k, startPos.x, startPos.y);
         console.log(`[LEVEL ${levelNum}] Player created:`, player);
 
-        // Camera follows player
+        // Camera follows player with Y clamping (so floor stays at bottom of viewport)
+        const cameraMaxY = 340;  // Clamp camera so floor (y:600) appears at bottom of 600px viewport
         player.onUpdate(() => {
-            k.setCamPos(player.pos);
+            const camX = player.pos.x;
+            const camY = Math.min(player.pos.y, cameraMaxY);  // Don't let camera go below floor level
+            k.setCamPos(k.vec2(camX, camY));
         });
 
-        // Death handler
+        // Death handler - respawn at checkpoint or start
         player.on("death", () => {
-            // Go to Game Over (health reached 0)
-            k.go(SCENES.GAME_OVER);
+            // Check if player has a checkpoint
+            if (player.checkpointPos) {
+                // Respawn at checkpoint
+                console.log(`[RESPAWN] Respawning at checkpoint (${player.checkpointPos.x}, ${player.checkpointPos.y})`);
+                player.pos.x = player.checkpointPos.x;
+                player.pos.y = player.checkpointPos.y;
+                player.vel = k.vec2(0, 0);
+
+                // Reset health and fuel
+                GAME_STATE.health = GAME_STATE.maxHealth;
+                player.fuel = player.maxFuel;
+                player.fallVelocity = 0;
+
+                // Clear any effects
+                player.hasShield = false;
+                const shieldEffect = player.get("shieldEffect")[0];
+                if (shieldEffect) k.destroy(shieldEffect);
+
+                // Brief invulnerability flash
+                const body = player.get("body")[0];
+                if (body) {
+                    body.color = k.rgb(255, 255, 255);
+                    k.wait(0.2, () => {
+                        body.color = k.rgb(100, 160, 255);
+                    });
+                }
+            } else {
+                // No checkpoint - respawn at level start
+                console.log(`[RESPAWN] No checkpoint - respawning at start (${startPos.x}, ${startPos.y})`);
+                player.pos.x = startPos.x;
+                player.pos.y = startPos.y;
+                player.vel = k.vec2(0, 0);
+
+                // Reset health and fuel
+                GAME_STATE.health = GAME_STATE.maxHealth;
+                player.fuel = player.maxFuel;
+                player.fallVelocity = 0;
+
+                // Clear any effects
+                player.hasShield = false;
+                const shieldEffect = player.get("shieldEffect")[0];
+                if (shieldEffect) k.destroy(shieldEffect);
+            }
         });
 
         // Handle doorway entry

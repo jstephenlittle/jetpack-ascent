@@ -2,11 +2,9 @@
   "name": "Space Tower - The Ascent",
   "theme": "space",
   "height": 15000,
-  "startPosition": [800, 550],
+  "startPosition": [800, 560],
   "doorwayPosition": [800, -14600],
   "platforms": [
-    {"type": "static", "x": 700, "y": 580, "width": 400},
-
     {"type": "breakaway", "x": 500, "y": 450, "width": 180},
     {"type": "breakaway", "x": 1000, "y": 380, "width": 180},
     {"type": "recharge", "x": 650, "y": 260, "width": 140},
