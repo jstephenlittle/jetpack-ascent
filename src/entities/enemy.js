@@ -99,55 +99,83 @@ function dealDamageToPlayer(k, player) {
 export function createRollerBot(k, x, y) {
     const speed = applyDifficulty(GAME_CONFIG.ROLLER_BOT_SPEED, "enemySpeed", GAME_STATE.difficulty);
 
-    // Spiked wheel enemy - uses circle for round appearance
+    // Main robot body - single entity to avoid WebGL issues with many enemies
     const bot = k.add([
-        k.circle(12),
+        k.rect(22, 18),
         k.pos(x, y),
         k.anchor("center"),
         k.area(),
         k.body(),
-        k.color(220, 60, 60),
-        k.outline(3, k.rgb(80, 80, 90)),
+        k.color(180, 50, 50),
+        k.outline(2, k.rgb(100, 30, 30)),
         "enemy",
         "rollerBot",
         {
             speed: speed,
             direction: 1,
             glowTime: 0,
+            patrolLeft: null,
+            patrolRight: null,
+            hasLanded: false,
         },
     ]);
 
+    // Just one extra part - the scanning eye (keeps it looking robotic)
+    const eye = k.add([
+        k.rect(10, 4),
+        k.pos(x, y - 4),
+        k.anchor("center"),
+        k.color(255, 255, 100),
+        k.outline(1, k.rgb(200, 200, 50)),
+        "robotEye",
+    ]);
+
+    // When bot lands on a platform, set patrol bounds
+    bot.onCollide("platform", (platform) => {
+        if (!bot.hasLanded) {
+            bot.hasLanded = true;
+            bot.patrolLeft = platform.pos.x + 15;
+            bot.patrolRight = platform.pos.x + platform.width - 15;
+        }
+    });
+
     bot.onUpdate(() => {
-        // Move in current direction
-        bot.move(bot.speed * bot.direction, 0);
+        const dt = k.dt();
 
-        // Check for platform edges or walls
-        const nextX = bot.pos.x + (bot.direction * 20);
-        const below = k.get("platform").filter(p => {
-            return Math.abs(p.pos.y - (bot.pos.y + 20)) < 5 &&
-                   Math.abs(p.pos.x - nextX) < p.width / 2;
-        });
+        // Only patrol if we've landed and have bounds
+        if (bot.hasLanded && bot.patrolLeft !== null) {
+            bot.move(bot.speed * bot.direction, 0);
 
-        // Reverse if no platform ahead or hit wall
-        if (below.length === 0 || bot.pos.x < 50 || bot.pos.x > k.width() - 50) {
-            bot.direction *= -1;
+            if (bot.pos.x <= bot.patrolLeft) {
+                bot.pos.x = bot.patrolLeft;
+                bot.direction = 1;
+            } else if (bot.pos.x >= bot.patrolRight) {
+                bot.pos.x = bot.patrolRight;
+                bot.direction = -1;
+            }
         }
 
-        // Pulsing glow effect
-        bot.glowTime += k.dt();
-        const pulse = 0.8 + Math.sin(bot.glowTime * 6) * 0.2;
-        bot.color = k.rgb(220 * pulse, 60, 60);
+        // Eye follows bot and shifts based on direction
+        eye.pos.x = bot.pos.x + (bot.direction * 3);
+        eye.pos.y = bot.pos.y - 4;
 
-        // Rotation animation
-        bot.angle += k.dt() * bot.speed * 0.5 * bot.direction;
+        // Scanning eye effect
+        bot.glowTime += dt;
+        const eyeGlow = 0.7 + Math.sin(bot.glowTime * 8) * 0.3;
+        eye.opacity = eyeGlow;
+        eye.color = k.rgb(255, 255 * eyeGlow, 100);
+
+        // Body color pulse (like warning lights)
+        const pulse = 0.85 + Math.sin(bot.glowTime * 4) * 0.15;
+        bot.color = k.rgb(180 * pulse, 50, 50);
     });
 
     // Damage player on collision
     bot.onCollide("player", (player) => {
         dealDamageToPlayer(k, player);
 
-        // Spawn death particles and destroy enemy
         spawnDeathParticles(k, bot.pos.x, bot.pos.y, k.rgb(200, 80, 80));
+        k.destroy(eye);
         k.destroy(bot);
     });
 
@@ -166,14 +194,13 @@ export function createRollerBot(k, x, y) {
 export function createHoverDrone(k, x, y, range = 150) {
     const speed = applyDifficulty(GAME_CONFIG.HOVER_DRONE_SPEED, "enemySpeed", GAME_STATE.difficulty);
 
-    // Flying drone enemy - wide saucer shape
+    // Invisible collision hitbox
     const drone = k.add([
-        k.rect(32, 12),
+        k.rect(36, 16),
         k.pos(x, y),
         k.anchor("center"),
         k.area(),
-        k.color(180, 100, 220),
-        k.outline(2, k.rgb(100, 60, 140)),
+        k.opacity(0),
         "enemy",
         "hoverDrone",
         {
@@ -186,6 +213,58 @@ export function createHoverDrone(k, x, y, range = 150) {
             thrusterTime: 0,
         },
     ]);
+
+    // Main ship body - pointed nose shape
+    const body = k.add([
+        k.rect(28, 10),
+        k.pos(x, y),
+        k.anchor("center"),
+        k.color(140, 80, 180),
+        k.outline(1, k.rgb(100, 50, 140)),
+        "droneBody",
+    ]);
+
+    // Cockpit/canopy - darker center
+    const cockpit = k.add([
+        k.rect(10, 6),
+        k.pos(x, y),
+        k.anchor("center"),
+        k.color(60, 30, 80),
+        k.outline(1, k.rgb(100, 60, 120)),
+        "droneCockpit",
+    ]);
+
+    // Left wing
+    const wingL = k.add([
+        k.rect(8, 16),
+        k.pos(x - 10, y),
+        k.anchor("center"),
+        k.color(160, 90, 200),
+        k.outline(1, k.rgb(120, 60, 160)),
+        "droneWing",
+    ]);
+
+    // Right wing
+    const wingR = k.add([
+        k.rect(8, 16),
+        k.pos(x + 10, y),
+        k.anchor("center"),
+        k.color(160, 90, 200),
+        k.outline(1, k.rgb(120, 60, 160)),
+        "droneWing",
+    ]);
+
+    // Engine glow (back of ship, changes based on direction)
+    const engine = k.add([
+        k.rect(6, 6),
+        k.pos(x - 14, y),
+        k.anchor("center"),
+        k.color(255, 150, 50),
+        k.opacity(0.9),
+        "droneEngine",
+    ]);
+
+    const shipParts = [body, cockpit, wingL, wingR, engine];
 
     drone.onUpdate(() => {
         const dt = k.dt();
@@ -203,18 +282,41 @@ export function createHoverDrone(k, x, y, range = 150) {
         const bobOffset = Math.sin(drone.bobTime) * 5;
         drone.pos.y = drone.startY + bobOffset;
 
-        // Thruster glow effect - pulsing purple
+        // Update all ship parts to follow
+        const currentX = drone.pos.x;
+        const currentY = drone.pos.y;
+
+        body.pos.x = currentX;
+        body.pos.y = currentY;
+        cockpit.pos.x = currentX + (drone.direction * 4);
+        cockpit.pos.y = currentY;
+        wingL.pos.x = currentX - 10;
+        wingL.pos.y = currentY;
+        wingR.pos.x = currentX + 10;
+        wingR.pos.y = currentY;
+
+        // Engine at the back (opposite to direction of movement)
+        engine.pos.x = currentX - (drone.direction * 16);
+        engine.pos.y = currentY;
+
+        // Engine glow effect - flickering
         drone.thrusterTime += dt;
-        const pulse = 0.7 + Math.sin(drone.thrusterTime * 10) * 0.3;
-        drone.color = k.rgb(180 * pulse, 100, 220);
+        const flicker = 0.6 + Math.sin(drone.thrusterTime * 20) * 0.4;
+        engine.opacity = flicker;
+        engine.color = k.rgb(255, 150 + Math.sin(drone.thrusterTime * 15) * 50, 50);
+
+        // Subtle body pulse
+        const pulse = 0.85 + Math.sin(drone.thrusterTime * 5) * 0.15;
+        body.color = k.rgb(140 * pulse, 80, 180);
     });
 
     // Damage player on collision
     drone.onCollide("player", (player) => {
         dealDamageToPlayer(k, player);
 
-        // Spawn death particles and destroy enemy
+        // Spawn death particles and destroy all parts
         spawnDeathParticles(k, drone.pos.x, drone.pos.y, k.rgb(150, 100, 200));
+        shipParts.forEach(part => k.destroy(part));
         k.destroy(drone);
     });
 
@@ -223,21 +325,21 @@ export function createHoverDrone(k, x, y, range = 150) {
 
 /**
  * Create a DropBot enemy
- * Hangs from ceiling, drops when player passes below
+ * Hangs from ceiling, drops when player passes below - looks like a torpedo
  * @param {object} k - KAPLAY instance
  * @param {number} x - X position
  * @param {number} y - Y position (ceiling position)
  * @returns {object} Enemy game object
  */
 export function createDropBot(k, x, y) {
-    // Ceiling mine enemy - triangular/arrow shape pointing down
+    // Torpedo body - elongated metallic shape
     const bot = k.add([
-        k.rect(20, 28),
+        k.rect(14, 32),
         k.pos(x, y),
         k.anchor("top"),
         k.area(),
-        k.color(220, 160, 40),
-        k.outline(2, k.rgb(140, 100, 20)),
+        k.color(120, 130, 140),
+        k.outline(2, k.rgb(80, 90, 100)),
         "enemy",
         "dropBot",
         {
@@ -249,12 +351,26 @@ export function createDropBot(k, x, y) {
         },
     ]);
 
-    bot.onUpdate(() => {
-        if (bot.isHanging) {
-            // Idle pulse when hanging
-            bot.pulseTime += k.dt();
-            const idlePulse = 0.9 + Math.sin(bot.pulseTime * 2) * 0.1;
+    // Torpedo nose/warhead - red tip (just one extra entity)
+    const warhead = k.add([
+        k.rect(14, 10),
+        k.pos(x, y + 32),
+        k.anchor("top"),
+        k.color(200, 60, 60),
+        k.outline(1, k.rgb(150, 40, 40)),
+        "torpedoWarhead",
+    ]);
 
+    bot.onUpdate(() => {
+        const dt = k.dt();
+        bot.pulseTime += dt;
+
+        // Warhead follows torpedo body
+        warhead.pos.x = bot.pos.x;
+        warhead.pos.y = bot.pos.y + 32;
+        warhead.angle = bot.angle;
+
+        if (bot.isHanging) {
             // Check for player below
             const player = k.get("player")[0];
             if (player) {
@@ -266,30 +382,34 @@ export function createDropBot(k, x, y) {
                 }
             }
 
-            // Warning phase - rapid red blinking
+            // Warning phase - warhead blinks red
             if (bot.isWarning) {
-                bot.warningTimer += k.dt();
+                bot.warningTimer += dt;
 
-                // Rapid blink between red and orange
                 const blink = Math.sin(bot.warningTimer * 20) > 0;
-                bot.color = blink ? k.rgb(255, 50, 50) : k.rgb(255, 180, 50);
+                warhead.color = blink ? k.rgb(255, 50, 50) : k.rgb(200, 60, 60);
+                bot.color = blink ? k.rgb(150, 160, 170) : k.rgb(120, 130, 140);
 
                 if (bot.warningTimer > GAME_CONFIG.DROPBOT_WARNING_TIME) {
                     // Drop!
                     bot.isHanging = false;
                     bot.isWarning = false;
-                    bot.color = k.rgb(255, 80, 40); // Angry red-orange when falling
-
-                    // Add body for falling
+                    warhead.color = k.rgb(255, 80, 40);
                     bot.use(k.body());
                 }
             } else {
-                // Normal idle color
-                bot.color = k.rgb(220 * idlePulse, 160 * idlePulse, 40);
+                // Idle metallic sheen
+                const sheen = 0.95 + Math.sin(bot.pulseTime * 2) * 0.05;
+                bot.color = k.rgb(120 * sheen, 130 * sheen, 140);
             }
         } else {
-            // Falling - spin rapidly
-            bot.angle += k.dt() * 8;
+            // Falling - slight wobble, no spin (torpedoes fall straight)
+            const wobble = Math.sin(bot.pulseTime * 15) * 3;
+            bot.angle = wobble;
+
+            // Engine glow effect on warhead
+            const glow = 0.8 + Math.sin(bot.pulseTime * 20) * 0.2;
+            warhead.color = k.rgb(255 * glow, 100, 40);
         }
     });
 
@@ -297,18 +417,88 @@ export function createDropBot(k, x, y) {
     bot.onCollide("player", (player) => {
         dealDamageToPlayer(k, player);
 
-        // Spawn death particles and destroy enemy
-        spawnDeathParticles(k, bot.pos.x, bot.pos.y, k.rgb(200, 150, 50));
+        spawnDeathParticles(k, bot.pos.x, bot.pos.y + 20, k.rgb(255, 150, 50));
+        k.destroy(warhead);
         k.destroy(bot);
     });
 
     // Destroy when hitting ground
     bot.onCollide("platform", () => {
         if (!bot.isHanging) {
-            spawnDeathParticles(k, bot.pos.x, bot.pos.y, k.rgb(200, 150, 50));
+            spawnDeathParticles(k, bot.pos.x, bot.pos.y + 20, k.rgb(255, 150, 50));
+            k.destroy(warhead);
             k.destroy(bot);
         }
     });
 
     return bot;
+}
+
+/**
+ * Create a Mine enemy
+ * Static floating mine that damages player on contact
+ * @param {object} k - KAPLAY instance
+ * @param {number} x - X position
+ * @param {number} y - Y position
+ * @returns {object} Enemy game object
+ */
+export function createMine(k, x, y) {
+    // Main mine body - spherical with spikes implied by outline
+    const mine = k.add([
+        k.circle(14),
+        k.pos(x, y),
+        k.anchor("center"),
+        k.area(),
+        k.color(80, 80, 90),
+        k.outline(3, k.rgb(50, 50, 60)),
+        "enemy",
+        "mine",
+        {
+            floatTime: Math.random() * Math.PI * 2, // Random start phase
+            pulseTime: 0,
+        },
+    ]);
+
+    // Warning light on top - blinking red
+    const light = k.add([
+        k.circle(5),
+        k.pos(x, y - 8),
+        k.anchor("center"),
+        k.color(255, 50, 50),
+        k.opacity(1),
+        "mineLight",
+    ]);
+
+    mine.onUpdate(() => {
+        const dt = k.dt();
+        mine.floatTime += dt;
+        mine.pulseTime += dt;
+
+        // Gentle floating motion
+        const floatOffset = Math.sin(mine.floatTime * 2) * 4;
+        mine.pos.y = y + floatOffset;
+        light.pos.y = mine.pos.y - 8;
+        light.pos.x = mine.pos.x;
+
+        // Blinking warning light
+        const blink = Math.sin(mine.pulseTime * 6) > 0;
+        light.color = blink ? k.rgb(255, 50, 50) : k.rgb(100, 20, 20);
+        light.opacity = blink ? 1 : 0.4;
+
+        // Subtle body pulse
+        const pulse = 0.9 + Math.sin(mine.pulseTime * 3) * 0.1;
+        mine.color = k.rgb(80 * pulse, 80 * pulse, 90);
+    });
+
+    // Damage player on collision
+    mine.onCollide("player", (player) => {
+        dealDamageToPlayer(k, player);
+
+        // Explosion particles
+        spawnDeathParticles(k, mine.pos.x, mine.pos.y, k.rgb(255, 150, 50));
+        k.destroy(light);
+        k.destroy(mine);
+    });
+
+    return mine;
 }

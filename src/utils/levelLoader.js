@@ -1,6 +1,6 @@
 import { createPlatform, createBreakawayPlatform, createBouncePad, createRechargeStation, createCheckpoint } from "../entities/platform.js";
-import { createRollerBot, createHoverDrone, createDropBot } from "../entities/enemy.js";
-import { createFuelCell, createShield, createMegaBoost, createHealthPickup } from "../entities/powerup.js";
+import { createRollerBot, createHoverDrone, createDropBot, createMine } from "../entities/enemy.js";
+import { createFuelCell, createShield, createHealthPickup } from "../entities/powerup.js";
 import { GAME_STATE } from "../constants.js";
 import { getDifficultyConfig } from "../config.js";
 
@@ -96,8 +96,8 @@ export async function loadLevel(k, levelData) {
                 powerupsCreated++;
                 break;
             case "megaBoost":
-                createMegaBoost(k, powerup.x, powerup.y);
-                powerupsCreated++;
+                // MegaBoost replaced with Mine enemy
+                createMine(k, powerup.x, powerup.y);
                 break;
             case "healthPickup":
                 createHealthPickup(k, powerup.x, powerup.y);
