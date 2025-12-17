@@ -284,27 +284,232 @@ export function levelScene(k, levelNum, levelName, nextScene, levelDataUrl) {
             ]);
         }
 
-        // Add floating dust/particles for Gothic theme (Level 2 only)
+        // Add elaborate Gothic background (Level 2 only)
         if (levelNum === 2) {
-            for (let i = 0; i < 80; i++) {
-                const x = Math.random() * k.width();
-                const y = Math.random() * 3500 - 3000; // Spread across level height
-                const size = Math.random() * 3 + 1;
+            // === GRADIENT BACKGROUND: Purple/black gothic atmosphere ===
+            const levelBottom = 800;
+            const levelTop = -8000;
+            const gradientHeight = levelBottom - levelTop;
+            const numBands = 16;
+            const bandHeight = gradientHeight / numBands;
+
+            for (let i = 0; i < numBands; i++) {
+                const progress = i / (numBands - 1);
+                // Dark purple at bottom to black at top
+                const r = Math.round(40 - progress * 30);
+                const g = Math.round(30 - progress * 25);
+                const b = Math.round(60 - progress * 45);
+
+                k.add([
+                    k.rect(2000, bandHeight + 50),
+                    k.pos(-200, levelBottom - (i + 1) * bandHeight),
+                    k.color(r, g, b),
+                    k.opacity(0.6),
+                    k.z(-9),
+                    "gradientBand",
+                ]);
+            }
+
+            // === FLOOR: Gothic stone floor ===
+            const floorY = 600;
+            k.add([
+                k.rect(1600, 40),
+                k.pos(0, floorY),
+                k.area(),
+                k.body({ isStatic: true }),
+                k.color(60, 55, 65),
+                k.outline(2, k.rgb(40, 35, 45)),
+                "platform",
+                "floor",
+            ]);
+
+            // Floor stone pattern
+            for (let x = 0; x < 1600; x += 60) {
+                k.add([
+                    k.rect(2, 35),
+                    k.pos(x, floorY + 3),
+                    k.color(45, 40, 50),
+                    k.opacity(0.6),
+                    "floorDecor",
+                ]);
+            }
+
+            // === WALLS: Gothic stone walls ===
+            const wallHeight = 9000;
+            const wallWidth = 40;
+            const wallTop = -8000;
+
+            // Left wall
+            k.add([
+                k.rect(wallWidth, wallHeight),
+                k.pos(-wallWidth, wallTop),
+                k.area(),
+                k.body({ isStatic: true }),
+                k.color(50, 45, 55),
+                k.outline(2, k.rgb(35, 30, 40)),
+                "platform",
+                "wall",
+            ]);
+
+            // Right wall
+            k.add([
+                k.rect(wallWidth, wallHeight),
+                k.pos(1600, wallTop),
+                k.area(),
+                k.body({ isStatic: true }),
+                k.color(50, 45, 55),
+                k.outline(2, k.rgb(35, 30, 40)),
+                "platform",
+                "wall",
+            ]);
+
+            // === DECORATIVE ELEMENTS ===
+
+            // Flickering torches on walls
+            const torchPositions = [
+                { x: 30, y: 200 }, { x: 1570, y: 200 },
+                { x: 30, y: -500 }, { x: 1570, y: -500 },
+                { x: 30, y: -1200 }, { x: 1570, y: -1200 },
+                { x: 30, y: -1900 }, { x: 1570, y: -1900 },
+                { x: 30, y: -2600 }, { x: 1570, y: -2600 },
+                { x: 30, y: -3300 }, { x: 1570, y: -3300 },
+                { x: 30, y: -4000 }, { x: 1570, y: -4000 },
+                { x: 30, y: -4700 }, { x: 1570, y: -4700 },
+                { x: 30, y: -5400 }, { x: 1570, y: -5400 },
+                { x: 30, y: -6100 }, { x: 1570, y: -6100 },
+                { x: 30, y: -6800 }, { x: 1570, y: -6800 },
+            ];
+
+            torchPositions.forEach((torch) => {
+                // Torch holder
+                k.add([
+                    k.rect(8, 16),
+                    k.pos(torch.x, torch.y),
+                    k.anchor("center"),
+                    k.color(80, 60, 40),
+                    k.z(-4),
+                ]);
+
+                // Flame
+                k.add([
+                    k.rect(10, 14, { radius: 4 }),
+                    k.pos(torch.x, torch.y - 12),
+                    k.anchor("center"),
+                    k.color(255, 150, 50),
+                    k.opacity(0.9),
+                    k.z(-4),
+                    {
+                        flickerTime: Math.random() * Math.PI * 2,
+                        update() {
+                            this.flickerTime += k.dt() * 10;
+                            this.opacity = 0.6 + Math.sin(this.flickerTime) * 0.3;
+                            this.scale = k.vec2(
+                                0.9 + Math.sin(this.flickerTime * 1.3) * 0.2,
+                                0.9 + Math.sin(this.flickerTime * 0.9) * 0.2
+                            );
+                        }
+                    }
+                ]);
+            });
+
+            // Gothic arched windows (background decoration)
+            const windowPositions = [
+                { x: 200, y: -1500 }, { x: 1400, y: -1500 },
+                { x: 200, y: -3500 }, { x: 1400, y: -3500 },
+                { x: 200, y: -5500 }, { x: 1400, y: -5500 },
+            ];
+
+            windowPositions.forEach((win) => {
+                // Window frame
+                k.add([
+                    k.rect(60, 100, { radius: 30 }),
+                    k.pos(win.x, win.y),
+                    k.anchor("center"),
+                    k.color(30, 25, 40),
+                    k.outline(3, k.rgb(50, 45, 60)),
+                    k.z(-7),
+                ]);
+                // Moon glow through window
+                k.add([
+                    k.rect(40, 70, { radius: 20 }),
+                    k.pos(win.x, win.y + 5),
+                    k.anchor("center"),
+                    k.color(80, 80, 120),
+                    k.opacity(0.3),
+                    k.z(-7),
+                ]);
+            });
+
+            // Flying bats in background
+            for (let i = 0; i < 15; i++) {
+                const batX = Math.random() * 1400 + 100;
+                const batY = Math.random() * 7000 - 7000;
+
+                k.add([
+                    k.rect(20, 8),
+                    k.pos(batX, batY),
+                    k.anchor("center"),
+                    k.color(30, 25, 35),
+                    k.opacity(0.4),
+                    k.z(-6),
+                    {
+                        startX: batX,
+                        startY: batY,
+                        flyTime: Math.random() * Math.PI * 2,
+                        flySpeed: 0.5 + Math.random() * 1,
+                        update() {
+                            this.flyTime += k.dt() * this.flySpeed;
+                            this.pos.x = this.startX + Math.sin(this.flyTime * 2) * 50;
+                            this.pos.y = this.startY + Math.sin(this.flyTime) * 20;
+                            // Wing flap
+                            this.scale = k.vec2(1, 0.6 + Math.sin(this.flyTime * 8) * 0.4);
+                        }
+                    }
+                ]);
+            }
+
+            // Floating dust/particles
+            for (let i = 0; i < 60; i++) {
+                const x = Math.random() * 1400 + 100;
+                const y = Math.random() * 8000 - 7500;
+                const size = Math.random() * 2 + 0.5;
 
                 k.add([
                     k.circle(size),
                     k.pos(x, y),
-                    k.color(120, 100, 120), // Dusty purple/grey
-                    k.opacity(0.2 + Math.random() * 0.3),
+                    k.color(150, 130, 160),
+                    k.opacity(0.15 + Math.random() * 0.2),
                     k.z(-5),
-                    k.fixed(),
                     {
+                        startY: y,
                         driftTime: Math.random() * Math.PI * 2,
-                        driftSpeed: 0.3 + Math.random() * 0.7,
-                        driftAmount: 10 + Math.random() * 20,
+                        driftSpeed: 0.3 + Math.random() * 0.5,
+                        update() {
+                            this.driftTime += k.dt() * this.driftSpeed;
+                            this.pos.y = this.startY + Math.sin(this.driftTime) * 15;
+                        }
                     }
                 ]);
             }
+
+            // Moon at top of level
+            k.add([
+                k.circle(80),
+                k.pos(1200, -7200),
+                k.anchor("center"),
+                k.color(220, 220, 200),
+                k.opacity(0.6),
+                k.z(-8),
+            ]);
+            // Moon glow
+            k.add([
+                k.circle(120),
+                k.pos(1200, -7200),
+                k.anchor("center"),
+                k.color(200, 200, 180),
+                k.opacity(0.2),
+                k.z(-8),
+            ]);
         }
 
         // Add window lights for Business Tower theme (Level 3 only)
@@ -365,39 +570,88 @@ export function levelScene(k, levelNum, levelName, nextScene, levelDataUrl) {
             k.setCamPos(k.vec2(camX, camY));
         });
 
-        // Death handler - respawn at checkpoint or start
+        // Death handler - respawn at checkpoint or start with dramatic effect
+        let isDying = false;
         player.on("death", () => {
-            // Check if player has a checkpoint
-            if (player.checkpointPos) {
-                // Respawn at checkpoint
-                console.log(`[RESPAWN] Respawning at checkpoint (${player.checkpointPos.x}, ${player.checkpointPos.y})`);
-                player.pos.x = player.checkpointPos.x;
-                player.pos.y = player.checkpointPos.y;
-                player.vel = k.vec2(0, 0);
+            // Prevent multiple death triggers
+            if (isDying) return;
+            isDying = true;
 
-                // Reset health and fuel
-                GAME_STATE.health = GAME_STATE.maxHealth;
-                player.fuel = player.maxFuel;
-                player.fallVelocity = 0;
+            // Freeze the player
+            player.paused = true;
+            player.vel = k.vec2(0, 0);
 
-                // Clear any effects
-                player.hasShield = false;
-                const shieldEffect = player.get("shieldEffect")[0];
-                if (shieldEffect) k.destroy(shieldEffect);
+            // Create full-screen dark overlay (very large to cover all camera positions)
+            const deathOverlay = k.add([
+                k.rect(4000, 4000),
+                k.pos(k.camPos()),
+                k.anchor("center"),
+                k.color(0, 0, 0),
+                k.opacity(0),
+                k.z(1000),  // On top of everything
+                "deathOverlay",
+            ]);
 
-                // Brief invulnerability flash
-                const body = player.get("body")[0];
-                if (body) {
-                    body.color = k.rgb(255, 255, 255);
-                    k.wait(0.2, () => {
-                        body.color = k.rgb(100, 160, 255);
+            // Keep overlay centered on camera
+            deathOverlay.onUpdate(() => {
+                deathOverlay.pos = k.camPos();
+            });
+
+            // Fade to black over 0.5 seconds
+            k.tween(0, 0.85, 0.5, (val) => {
+                deathOverlay.opacity = val;
+            }, k.easings.easeInQuad);
+
+            // Show death message after fade completes
+            let deathText = null;
+            k.wait(0.5, () => {
+                deathText = k.add([
+                    k.text("Robot Broke - Try Again", {
+                        size: 48,
+                        font: "sans-serif",
+                    }),
+                    k.pos(k.camPos()),
+                    k.anchor("center"),
+                    k.color(255, 255, 255),
+                    k.opacity(0),
+                    k.z(1001),  // Above the dark overlay
+                    "deathText",
+                ]);
+
+                // Keep text centered on camera
+                deathText.onUpdate(() => {
+                    deathText.pos = k.camPos();
+                });
+
+                // Fade in the text
+                k.tween(0, 1, 0.3, (val) => {
+                    deathText.opacity = val;
+                }, k.easings.easeOutQuad);
+            });
+
+            // After fade, wait 2 seconds, then respawn
+            k.wait(2.5, () => {
+                // Fade out the death text
+                if (deathText) {
+                    k.tween(1, 0, 0.3, (val) => {
+                        deathText.opacity = val;
+                    }, k.easings.easeInQuad).onEnd(() => {
+                        k.destroy(deathText);
                     });
                 }
-            } else {
-                // No checkpoint - respawn at level start
-                console.log(`[RESPAWN] No checkpoint - respawning at start (${startPos.x}, ${startPos.y})`);
-                player.pos.x = startPos.x;
-                player.pos.y = startPos.y;
+                // Determine respawn position
+                let respawnPos;
+                if (player.checkpointPos) {
+                    console.log(`[RESPAWN] Respawning at checkpoint (${player.checkpointPos.x}, ${player.checkpointPos.y})`);
+                    respawnPos = player.checkpointPos;
+                } else {
+                    console.log(`[RESPAWN] No checkpoint - respawning at start (${startPos.x}, ${startPos.y})`);
+                    respawnPos = startPos;
+                }
+
+                // Move player to respawn position
+                player.pos.x = respawnPos.x;
+                player.pos.y = respawnPos.y;
                 player.vel = k.vec2(0, 0);
 
                 // Reset health and fuel
@@ -409,7 +663,34 @@ export function levelScene(k, levelNum, levelName, nextScene, levelDataUrl) {
                 player.hasShield = false;
                 const shieldEffect = player.get("shieldEffect")[0];
                 if (shieldEffect) k.destroy(shieldEffect);
-            }
+
+                // Snap camera to new position
+                const halfViewportWidth = k.width() / 2;
+                const cameraMinX = halfViewportWidth;
+                const cameraMaxX = towerWidth - halfViewportWidth;
+                const camX = Math.max(cameraMinX, Math.min(player.pos.x, cameraMaxX));
+                const camY = Math.min(player.pos.y, cameraMaxY);
+                k.setCamPos(k.vec2(camX, camY));
+
+                // Fade back in over 0.5 seconds
+                k.tween(0.85, 0, 0.5, (val) => {
+                    deathOverlay.opacity = val;
+                }, k.easings.easeOutQuad).onEnd(() => {
+                    // Resume player control and cleanup
+                    player.paused = false;
+                    isDying = false;
+                    k.destroy(deathOverlay);
+
+                    // Brief invulnerability flash
+                    const body = player.get("body")[0];
+                    if (body) {
+                        body.color = k.rgb(255, 255, 255);
+                        k.wait(0.2, () => {
+                            body.color = k.rgb(100, 160, 255);
+                        });
+                    }
+                });
+            });
         });
 
         // Handle doorway entry
@@ -423,28 +704,47 @@ export function levelScene(k, levelNum, levelName, nextScene, levelDataUrl) {
             });
         }
 
-        // Level title (temporary) - fixed position
-        k.add([
+        // Level title (fades out after 3 seconds)
+        const levelTitle = k.add([
             k.text(`LEVEL ${levelNum}: ${levelName}`, {
                 size: 24,
             }),
             k.pos(k.center().x, 30),
             k.anchor("center"),
             k.color(255, 255, 255),
+            k.opacity(1),
             k.fixed(),
         ]);
 
-        // Instructions
-        k.add([
-            k.text("Arrow keys: Move\nSpace: Jetpack\nR: Restart | ESC: Menu", {
+        // Fade out title after 3 seconds
+        k.wait(3, () => {
+            k.tween(1, 0, 1.5, (val) => {
+                levelTitle.opacity = val;
+            }, k.easings.easeOutQuad).onEnd(() => {
+                k.destroy(levelTitle);
+            });
+        });
+
+        // Instructions (fades out after 5 seconds)
+        const instructions = k.add([
+            k.text("Arrow keys: Move | Space: Jetpack | ESC: Menu", {
                 size: 12,
-                width: 180,
             }),
             k.pos(k.width() - 20, 20),
             k.anchor("topright"),
             k.color(180, 180, 180),
+            k.opacity(1),
             k.fixed(),
         ]);
+
+        // Fade out instructions after 5 seconds
+        k.wait(5, () => {
+            k.tween(1, 0, 1, (val) => {
+                instructions.opacity = val;
+            }, k.easings.easeOutQuad).onEnd(() => {
+                k.destroy(instructions);
+            });
+        });
 
         // Show difficulty
         k.add([
@@ -571,28 +871,59 @@ export function levelScene(k, levelNum, levelName, nextScene, levelDataUrl) {
             k.fixed(),
         ]);
 
-        // Star counter
-        // Reset stars collected at level start
+        // Collectible counter
+        // Reset collectibles collected at level start
         GAME_STATE.starsCollected = 0;
 
-        // Star icon (small yellow star)
-        k.add([
-            k.rect(8, 8),
-            k.pos(24, 150),
-            k.anchor("center"),
-            k.color(255, 230, 100),
-            k.rotate(45),
-            k.fixed(),
-        ]);
+        // Collectible icon (star for Level 1, goblet for Level 2)
+        if (levelNum === 2) {
+            // Goblet icon for Gothic level
+            // Cup
+            k.add([
+                k.rect(10, 6, { radius: 1 }),
+                k.pos(24, 146),
+                k.anchor("center"),
+                k.color(218, 165, 32),
+                k.outline(1, k.rgb(184, 134, 11)),
+                k.fixed(),
+            ]);
+            // Stem
+            k.add([
+                k.rect(3, 5),
+                k.pos(24, 152),
+                k.anchor("center"),
+                k.color(218, 165, 32),
+                k.fixed(),
+            ]);
+            // Base
+            k.add([
+                k.rect(8, 3),
+                k.pos(24, 156),
+                k.anchor("center"),
+                k.color(218, 165, 32),
+                k.fixed(),
+            ]);
+        } else {
+            // Star icon (default)
+            k.add([
+                k.rect(8, 8),
+                k.pos(24, 150),
+                k.anchor("center"),
+                k.color(255, 230, 100),
+                k.rotate(45),
+                k.fixed(),
+            ]);
+        }
 
-        // Star count text
+        // Collectible count text
+        const collectibleColor = levelNum === 2 ? k.rgb(218, 165, 32) : k.rgb(255, 230, 100);
         k.add([
             k.text("0 / 0", {
                 size: 14,
             }),
             k.pos(36, 150),
             k.anchor("left"),
-            k.color(255, 230, 100),
+            k.color(collectibleColor),
             k.fixed(),
             {
                 update() {
@@ -601,14 +932,7 @@ export function levelScene(k, levelNum, levelName, nextScene, levelDataUrl) {
             }
         ]);
 
-        // R key to restart (after death)
-        k.onKeyPress("r", () => {
-            GAME_STATE.currentLevel = 1;
-            GAME_STATE.score = 0;
-            k.go(SCENES.MAIN_MENU);
-        });
-
-        // Temporary navigation
+        // Temporary navigation (N key for testing)
         k.onKeyPress("n", () => {
             if (nextScene === SCENES.VICTORY) {
                 k.go(SCENES.VICTORY);

@@ -1,7 +1,10 @@
 import { createPlatform, createBreakawayPlatform, createBouncePad, createRechargeStation, createCheckpoint } from "../entities/platform.js";
-import { createRollerBot, createHoverDrone, createDropBot, createMine } from "../entities/enemy.js";
+import {
+    createRollerBot, createHoverDrone, createDropBot, createMine,
+    createSkullRoller, createBat, createGargoyle, createGhost
+} from "../entities/enemy.js";
 import { createFuelCell, createShield, createHealthPickup } from "../entities/powerup.js";
-import { createStar } from "../entities/collectible.js";
+import { createStar, createGoblet } from "../entities/collectible.js";
 import { GAME_STATE } from "../constants.js";
 import { getDifficultyConfig } from "../config.js";
 
@@ -52,7 +55,9 @@ export async function loadLevel(k, levelData) {
     console.log(`[LEVEL LOADER] Created ${platformsCreated} platforms`);
 
     // Load enemies (adjusted by difficulty hazardRate)
-    console.log(`[LEVEL LOADER] Loading ${levelData.enemies.length} enemies`);
+    // Use themed enemies based on level theme
+    const isGothic = levelData.theme === "gothic";
+    console.log(`[LEVEL LOADER] Loading ${levelData.enemies.length} enemies (theme: ${levelData.theme})`);
     let enemiesCreated = 0;
     levelData.enemies.forEach(enemy => {
         // Spawn more enemies on hard, fewer on easy
@@ -63,15 +68,31 @@ export async function loadLevel(k, levelData) {
 
         switch (enemy.type) {
             case "rollerBot":
-                createRollerBot(k, enemy.x, enemy.y);
+                if (isGothic) {
+                    createSkullRoller(k, enemy.x, enemy.y);
+                } else {
+                    createRollerBot(k, enemy.x, enemy.y);
+                }
                 enemiesCreated++;
                 break;
             case "hoverDrone":
-                createHoverDrone(k, enemy.x, enemy.y, enemy.range || 150);
+                if (isGothic) {
+                    createBat(k, enemy.x, enemy.y, enemy.range || 150);
+                } else {
+                    createHoverDrone(k, enemy.x, enemy.y, enemy.range || 150);
+                }
                 enemiesCreated++;
                 break;
             case "dropBot":
-                createDropBot(k, enemy.x, enemy.y);
+                if (isGothic) {
+                    createGargoyle(k, enemy.x, enemy.y);
+                } else {
+                    createDropBot(k, enemy.x, enemy.y);
+                }
+                enemiesCreated++;
+                break;
+            case "ghost":
+                createGhost(k, enemy.x, enemy.y);
                 enemiesCreated++;
                 break;
         }
@@ -108,7 +129,7 @@ export async function loadLevel(k, levelData) {
     });
     console.log(`[LEVEL LOADER] Created ${powerupsCreated} power-ups`);
 
-    // Load collectibles (stars, gems, etc.)
+    // Load collectibles (stars, goblets, etc.)
     GAME_STATE.totalStars = 0;
     if (levelData.collectibles && levelData.collectibles.length > 0) {
         console.log(`[LEVEL LOADER] Loading ${levelData.collectibles.length} collectibles`);
@@ -117,6 +138,11 @@ export async function loadLevel(k, levelData) {
             switch (collectible.type) {
                 case "star":
                     createStar(k, collectible.x, collectible.y);
+                    collectiblesCreated++;
+                    GAME_STATE.totalStars++;
+                    break;
+                case "goblet":
+                    createGoblet(k, collectible.x, collectible.y);
                     collectiblesCreated++;
                     GAME_STATE.totalStars++;
                     break;

@@ -502,3 +502,584 @@ export function createMine(k, x, y) {
 
     return mine;
 }
+
+// =====================================================
+// GOTHIC THEME ENEMIES
+// Same behaviors, different visual skins
+// =====================================================
+
+/**
+ * Create a Skull Roller enemy (Gothic theme)
+ * A rolling skull that patrols platforms - same behavior as RollerBot
+ */
+export function createSkullRoller(k, x, y) {
+    const speed = applyDifficulty(GAME_CONFIG.ROLLER_BOT_SPEED, "enemySpeed", GAME_STATE.difficulty);
+
+    // Main skull body
+    const skull = k.add([
+        k.circle(14),
+        k.pos(x, y),
+        k.anchor("center"),
+        k.area(),
+        k.body(),
+        k.color(220, 210, 180), // Bone color
+        k.outline(2, k.rgb(150, 140, 120)),
+        "enemy",
+        "skullRoller",
+        {
+            speed: speed,
+            direction: 1,
+            glowTime: 0,
+            patrolLeft: null,
+            patrolRight: null,
+            hasLanded: false,
+        },
+    ]);
+
+    // Left eye socket (glowing)
+    const eyeL = k.add([
+        k.rect(5, 6),
+        k.pos(x - 4, y - 2),
+        k.anchor("center"),
+        k.color(180, 50, 50),
+        k.opacity(0.9),
+        "skullEye",
+    ]);
+
+    // Right eye socket (glowing)
+    const eyeR = k.add([
+        k.rect(5, 6),
+        k.pos(x + 4, y - 2),
+        k.anchor("center"),
+        k.color(180, 50, 50),
+        k.opacity(0.9),
+        "skullEye",
+    ]);
+
+    // Jaw/teeth detail
+    const jaw = k.add([
+        k.rect(12, 4),
+        k.pos(x, y + 6),
+        k.anchor("center"),
+        k.color(200, 190, 160),
+        k.outline(1, k.rgb(140, 130, 110)),
+        "skullJaw",
+    ]);
+
+    skull.onCollide("platform", (platform) => {
+        if (!skull.hasLanded) {
+            skull.hasLanded = true;
+            skull.patrolLeft = platform.pos.x + 15;
+            skull.patrolRight = platform.pos.x + platform.width - 15;
+        }
+    });
+
+    skull.onUpdate(() => {
+        const dt = k.dt();
+
+        if (skull.hasLanded && skull.patrolLeft !== null) {
+            skull.move(skull.speed * skull.direction, 0);
+
+            if (skull.pos.x <= skull.patrolLeft) {
+                skull.pos.x = skull.patrolLeft;
+                skull.direction = 1;
+            } else if (skull.pos.x >= skull.patrolRight) {
+                skull.pos.x = skull.patrolRight;
+                skull.direction = -1;
+            }
+        }
+
+        // Eyes and jaw follow skull
+        eyeL.pos.x = skull.pos.x - 4;
+        eyeL.pos.y = skull.pos.y - 2;
+        eyeR.pos.x = skull.pos.x + 4;
+        eyeR.pos.y = skull.pos.y - 2;
+        jaw.pos.x = skull.pos.x;
+        jaw.pos.y = skull.pos.y + 6;
+
+        // Glowing eye effect
+        skull.glowTime += dt;
+        const eyeGlow = 0.6 + Math.sin(skull.glowTime * 4) * 0.4;
+        eyeL.color = k.rgb(180 + 75 * eyeGlow, 50, 50);
+        eyeR.color = k.rgb(180 + 75 * eyeGlow, 50, 50);
+        eyeL.opacity = eyeGlow;
+        eyeR.opacity = eyeGlow;
+    });
+
+    skull.onCollide("player", (player) => {
+        dealDamageToPlayer(k, player);
+        spawnDeathParticles(k, skull.pos.x, skull.pos.y, k.rgb(220, 210, 180));
+        k.destroy(eyeL);
+        k.destroy(eyeR);
+        k.destroy(jaw);
+        k.destroy(skull);
+    });
+
+    return skull;
+}
+
+/**
+ * Create a Bat enemy (Gothic theme)
+ * A bat that flies horizontally with flapping wings - same behavior as HoverDrone
+ */
+export function createBat(k, x, y, range = 150) {
+    const speed = applyDifficulty(GAME_CONFIG.HOVER_DRONE_SPEED, "enemySpeed", GAME_STATE.difficulty);
+
+    // Invisible collision hitbox
+    const bat = k.add([
+        k.rect(32, 18),
+        k.pos(x, y),
+        k.anchor("center"),
+        k.area(),
+        k.opacity(0),
+        "enemy",
+        "bat",
+        {
+            speed: speed,
+            startX: x,
+            startY: y,
+            range: range,
+            direction: 1,
+            bobTime: 0,
+            flapTime: 0,
+        },
+    ]);
+
+    // Bat body (dark furry oval)
+    const body = k.add([
+        k.rect(16, 12, { radius: 6 }),
+        k.pos(x, y),
+        k.anchor("center"),
+        k.color(50, 40, 60),
+        k.outline(1, k.rgb(30, 20, 40)),
+        "batBody",
+    ]);
+
+    // Bat head
+    const head = k.add([
+        k.circle(6),
+        k.pos(x, y - 6),
+        k.anchor("center"),
+        k.color(50, 40, 60),
+        "batHead",
+    ]);
+
+    // Left ear
+    const earL = k.add([
+        k.rect(3, 6),
+        k.pos(x - 4, y - 12),
+        k.anchor("center"),
+        k.color(50, 40, 60),
+        k.rotate(-15),
+        "batEar",
+    ]);
+
+    // Right ear
+    const earR = k.add([
+        k.rect(3, 6),
+        k.pos(x + 4, y - 12),
+        k.anchor("center"),
+        k.color(50, 40, 60),
+        k.rotate(15),
+        "batEar",
+    ]);
+
+    // Glowing red eyes
+    const eyeL = k.add([
+        k.circle(2),
+        k.pos(x - 2, y - 6),
+        k.anchor("center"),
+        k.color(255, 50, 50),
+        "batEye",
+    ]);
+
+    const eyeR = k.add([
+        k.circle(2),
+        k.pos(x + 2, y - 6),
+        k.anchor("center"),
+        k.color(255, 50, 50),
+        "batEye",
+    ]);
+
+    // Left wing
+    const wingL = k.add([
+        k.rect(14, 8),
+        k.pos(x - 16, y),
+        k.anchor("right"),
+        k.color(40, 30, 50),
+        k.outline(1, k.rgb(60, 50, 70)),
+        "batWing",
+    ]);
+
+    // Right wing
+    const wingR = k.add([
+        k.rect(14, 8),
+        k.pos(x + 16, y),
+        k.anchor("left"),
+        k.color(40, 30, 50),
+        k.outline(1, k.rgb(60, 50, 70)),
+        "batWing",
+    ]);
+
+    const batParts = [body, head, earL, earR, eyeL, eyeR, wingL, wingR];
+
+    bat.onUpdate(() => {
+        const dt = k.dt();
+
+        // Horizontal movement
+        bat.move(bat.speed * bat.direction, 0);
+
+        if (Math.abs(bat.pos.x - bat.startX) > bat.range / 2) {
+            bat.direction *= -1;
+        }
+
+        // Bobbing motion
+        bat.bobTime += dt * 2;
+        const bobOffset = Math.sin(bat.bobTime) * 5;
+        bat.pos.y = bat.startY + bobOffset;
+
+        // Wing flapping
+        bat.flapTime += dt * 12;
+        const flapAngle = Math.sin(bat.flapTime) * 25;
+
+        const cx = bat.pos.x;
+        const cy = bat.pos.y;
+
+        body.pos.x = cx;
+        body.pos.y = cy;
+        head.pos.x = cx + (bat.direction * 2);
+        head.pos.y = cy - 6;
+        earL.pos.x = cx - 4;
+        earL.pos.y = cy - 12;
+        earR.pos.x = cx + 4;
+        earR.pos.y = cy - 12;
+        eyeL.pos.x = cx - 2 + (bat.direction * 2);
+        eyeL.pos.y = cy - 6;
+        eyeR.pos.x = cx + 2 + (bat.direction * 2);
+        eyeR.pos.y = cy - 6;
+
+        // Animated wings
+        wingL.pos.x = cx - 8;
+        wingL.pos.y = cy + Math.sin(bat.flapTime) * 3;
+        wingL.angle = -flapAngle;
+        wingR.pos.x = cx + 8;
+        wingR.pos.y = cy + Math.sin(bat.flapTime) * 3;
+        wingR.angle = flapAngle;
+
+        // Eye glow
+        const glow = 0.7 + Math.sin(bat.bobTime * 2) * 0.3;
+        eyeL.color = k.rgb(255 * glow, 50, 50);
+        eyeR.color = k.rgb(255 * glow, 50, 50);
+    });
+
+    bat.onCollide("player", (player) => {
+        dealDamageToPlayer(k, player);
+        spawnDeathParticles(k, bat.pos.x, bat.pos.y, k.rgb(80, 60, 100));
+        batParts.forEach(part => k.destroy(part));
+        k.destroy(bat);
+    });
+
+    return bat;
+}
+
+/**
+ * Create a Gargoyle enemy (Gothic theme)
+ * A stone gargoyle that drops from above - same behavior as DropBot
+ */
+export function createGargoyle(k, x, y) {
+    // Main gargoyle body - stone-like
+    const gargoyle = k.add([
+        k.rect(18, 28),
+        k.pos(x, y),
+        k.anchor("top"),
+        k.area(),
+        k.color(100, 95, 90), // Stone grey
+        k.outline(2, k.rgb(70, 65, 60)),
+        "enemy",
+        "gargoyle",
+        {
+            isHanging: true,
+            isWarning: false,
+            warningTimer: 0,
+            detectRange: 80,
+            pulseTime: 0,
+        },
+    ]);
+
+    // Gargoyle head with horns
+    const head = k.add([
+        k.rect(14, 12, { radius: 2 }),
+        k.pos(x, y - 2),
+        k.anchor("center"),
+        k.color(110, 105, 100),
+        k.outline(1, k.rgb(80, 75, 70)),
+        "gargoyleHead",
+    ]);
+
+    // Left horn
+    const hornL = k.add([
+        k.rect(4, 8),
+        k.pos(x - 6, y - 8),
+        k.anchor("center"),
+        k.color(90, 85, 80),
+        k.rotate(-20),
+        "gargoyleHorn",
+    ]);
+
+    // Right horn
+    const hornR = k.add([
+        k.rect(4, 8),
+        k.pos(x + 6, y - 8),
+        k.anchor("center"),
+        k.color(90, 85, 80),
+        k.rotate(20),
+        "gargoyleHorn",
+    ]);
+
+    // Glowing eyes (dormant red, active bright)
+    const eyeL = k.add([
+        k.rect(4, 3),
+        k.pos(x - 3, y - 2),
+        k.anchor("center"),
+        k.color(100, 40, 40),
+        k.opacity(0.5),
+        "gargoyleEye",
+    ]);
+
+    const eyeR = k.add([
+        k.rect(4, 3),
+        k.pos(x + 3, y - 2),
+        k.anchor("center"),
+        k.color(100, 40, 40),
+        k.opacity(0.5),
+        "gargoyleEye",
+    ]);
+
+    // Wings (folded when hanging)
+    const wingL = k.add([
+        k.rect(8, 20),
+        k.pos(x - 12, y + 10),
+        k.anchor("center"),
+        k.color(80, 75, 70),
+        k.outline(1, k.rgb(60, 55, 50)),
+        "gargoyleWing",
+    ]);
+
+    const wingR = k.add([
+        k.rect(8, 20),
+        k.pos(x + 12, y + 10),
+        k.anchor("center"),
+        k.color(80, 75, 70),
+        k.outline(1, k.rgb(60, 55, 50)),
+        "gargoyleWing",
+    ]);
+
+    const parts = [head, hornL, hornR, eyeL, eyeR, wingL, wingR];
+
+    gargoyle.onUpdate(() => {
+        const dt = k.dt();
+        gargoyle.pulseTime += dt;
+
+        // Update part positions
+        const gx = gargoyle.pos.x;
+        const gy = gargoyle.pos.y;
+
+        head.pos.x = gx;
+        head.pos.y = gy - 2;
+        hornL.pos.x = gx - 6;
+        hornL.pos.y = gy - 8;
+        hornR.pos.x = gx + 6;
+        hornR.pos.y = gy - 8;
+        eyeL.pos.x = gx - 3;
+        eyeL.pos.y = gy - 2;
+        eyeR.pos.x = gx + 3;
+        eyeR.pos.y = gy - 2;
+
+        if (gargoyle.isHanging) {
+            wingL.pos.x = gx - 12;
+            wingL.pos.y = gy + 10;
+            wingR.pos.x = gx + 12;
+            wingR.pos.y = gy + 10;
+
+            const player = k.get("player")[0];
+            if (player) {
+                const horizontalDist = Math.abs(player.pos.x - gx);
+                const verticalDist = player.pos.y - gy;
+
+                if (horizontalDist < gargoyle.detectRange && verticalDist > 0 && verticalDist < 300) {
+                    gargoyle.isWarning = true;
+                }
+            }
+
+            if (gargoyle.isWarning) {
+                gargoyle.warningTimer += dt;
+
+                // Eyes glow brighter, body trembles
+                const intensity = Math.sin(gargoyle.warningTimer * 15);
+                eyeL.color = k.rgb(200 + 55 * intensity, 50, 50);
+                eyeR.color = k.rgb(200 + 55 * intensity, 50, 50);
+                eyeL.opacity = 0.8 + intensity * 0.2;
+                eyeR.opacity = 0.8 + intensity * 0.2;
+
+                // Tremble
+                gargoyle.pos.x = gx + intensity * 2;
+
+                if (gargoyle.warningTimer > GAME_CONFIG.DROPBOT_WARNING_TIME) {
+                    gargoyle.isHanging = false;
+                    gargoyle.isWarning = false;
+                    gargoyle.use(k.body());
+                }
+            } else {
+                // Dormant stone look
+                eyeL.opacity = 0.3 + Math.sin(gargoyle.pulseTime) * 0.1;
+                eyeR.opacity = 0.3 + Math.sin(gargoyle.pulseTime) * 0.1;
+            }
+        } else {
+            // Falling - wings spread
+            wingL.pos.x = gx - 16;
+            wingL.pos.y = gy + 6;
+            wingL.angle = -20 + Math.sin(gargoyle.pulseTime * 10) * 10;
+            wingR.pos.x = gx + 16;
+            wingR.pos.y = gy + 6;
+            wingR.angle = 20 - Math.sin(gargoyle.pulseTime * 10) * 10;
+
+            // Bright angry eyes
+            eyeL.color = k.rgb(255, 100, 50);
+            eyeR.color = k.rgb(255, 100, 50);
+            eyeL.opacity = 1;
+            eyeR.opacity = 1;
+        }
+    });
+
+    gargoyle.onCollide("player", (player) => {
+        dealDamageToPlayer(k, player);
+        spawnDeathParticles(k, gargoyle.pos.x, gargoyle.pos.y + 15, k.rgb(120, 110, 100));
+        parts.forEach(p => k.destroy(p));
+        k.destroy(gargoyle);
+    });
+
+    gargoyle.onCollide("platform", () => {
+        if (!gargoyle.isHanging) {
+            spawnDeathParticles(k, gargoyle.pos.x, gargoyle.pos.y + 15, k.rgb(120, 110, 100));
+            parts.forEach(p => k.destroy(p));
+            k.destroy(gargoyle);
+        }
+    });
+
+    return gargoyle;
+}
+
+/**
+ * Create a Ghost enemy (Gothic theme)
+ * A floating ghost/specter - same behavior as Mine
+ */
+export function createGhost(k, x, y) {
+    // Main ghost body
+    const ghost = k.add([
+        k.rect(20, 24, { radius: 10 }),
+        k.pos(x, y),
+        k.anchor("center"),
+        k.area(),
+        k.color(200, 210, 220),
+        k.opacity(0.7),
+        k.outline(2, k.rgb(150, 160, 180)),
+        "enemy",
+        "ghost",
+        {
+            floatTime: Math.random() * Math.PI * 2,
+            pulseTime: 0,
+        },
+    ]);
+
+    // Ghost face - hollow eyes
+    const eyeL = k.add([
+        k.circle(3),
+        k.pos(x - 4, y - 4),
+        k.anchor("center"),
+        k.color(30, 30, 50),
+        k.opacity(0.9),
+        "ghostEye",
+    ]);
+
+    const eyeR = k.add([
+        k.circle(3),
+        k.pos(x + 4, y - 4),
+        k.anchor("center"),
+        k.color(30, 30, 50),
+        k.opacity(0.9),
+        "ghostEye",
+    ]);
+
+    // Ghost mouth (wailing O shape)
+    const mouth = k.add([
+        k.circle(4),
+        k.pos(x, y + 3),
+        k.anchor("center"),
+        k.color(50, 50, 70),
+        k.opacity(0.8),
+        "ghostMouth",
+    ]);
+
+    // Wispy tail
+    const tail = k.add([
+        k.rect(14, 10, { radius: 4 }),
+        k.pos(x, y + 14),
+        k.anchor("center"),
+        k.color(180, 190, 200),
+        k.opacity(0.5),
+        "ghostTail",
+    ]);
+
+    ghost.onUpdate(() => {
+        const dt = k.dt();
+        ghost.floatTime += dt;
+        ghost.pulseTime += dt;
+
+        // Ethereal floating motion
+        const floatOffset = Math.sin(ghost.floatTime * 2) * 6;
+        const swayOffset = Math.sin(ghost.floatTime * 1.5) * 3;
+        ghost.pos.y = y + floatOffset;
+        ghost.pos.x = x + swayOffset;
+
+        // Update parts
+        eyeL.pos.x = ghost.pos.x - 4;
+        eyeL.pos.y = ghost.pos.y - 4;
+        eyeR.pos.x = ghost.pos.x + 4;
+        eyeR.pos.y = ghost.pos.y - 4;
+        mouth.pos.x = ghost.pos.x;
+        mouth.pos.y = ghost.pos.y + 3;
+        tail.pos.x = ghost.pos.x;
+        tail.pos.y = ghost.pos.y + 14;
+
+        // Ghostly pulsing opacity
+        const pulse = 0.5 + Math.sin(ghost.pulseTime * 3) * 0.2;
+        ghost.opacity = pulse + 0.2;
+        tail.opacity = pulse - 0.1;
+
+        // Wailing mouth animation
+        const mouthScale = 0.8 + Math.sin(ghost.pulseTime * 4) * 0.3;
+        mouth.scale = k.vec2(1, mouthScale);
+
+        // Eye glow
+        const eyeGlow = Math.sin(ghost.pulseTime * 2) > 0;
+        if (eyeGlow) {
+            eyeL.color = k.rgb(100, 150, 200);
+            eyeR.color = k.rgb(100, 150, 200);
+        } else {
+            eyeL.color = k.rgb(30, 30, 50);
+            eyeR.color = k.rgb(30, 30, 50);
+        }
+    });
+
+    ghost.onCollide("player", (player) => {
+        dealDamageToPlayer(k, player);
+        spawnDeathParticles(k, ghost.pos.x, ghost.pos.y, k.rgb(200, 210, 220));
+        k.destroy(eyeL);
+        k.destroy(eyeR);
+        k.destroy(mouth);
+        k.destroy(tail);
+        k.destroy(ghost);
+    });
+
+    return ghost;
+}
