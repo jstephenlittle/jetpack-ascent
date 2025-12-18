@@ -557,16 +557,25 @@ export function levelScene(k, levelNum, levelName, nextScene, levelDataUrl) {
         const player = createPlayer(k, startPos.x, startPos.y);
         console.log(`[LEVEL ${levelNum}] Player created:`, player);
 
+        // Zoom out camera to show 50% more of the level
+        const cameraScale = 0.67;
+        k.camScale(cameraScale);
+
         // Camera follows player with clamping (floor at bottom, tower walls at sides)
-        const cameraMaxY = 340;  // Clamp camera so floor (y:600) appears at bottom of 600px viewport
-        const towerWidth = 1600;  // Tower is 1600 pixels wide
+        // Effective viewport is larger due to zoom: 800/0.67 x 600/0.67 ≈ 1194x895
+        const effectiveViewportWidth = k.width() / cameraScale;
+        const effectiveViewportHeight = k.height() / cameraScale;
+        const halfViewportWidth = effectiveViewportWidth / 2;
+        const halfViewportHeight = effectiveViewportHeight / 2;
+        const towerWidth = 1600;
+        const floorY = 600;
+        const cameraMaxY = floorY - halfViewportHeight;  // Keep floor at bottom of viewport
+        const cameraMinX = halfViewportWidth;
+        const cameraMaxX = towerWidth - halfViewportWidth;
+
         player.onUpdate(() => {
-            // Clamp X so viewport stays within tower boundaries
-            const halfViewportWidth = k.width() / 2;
-            const cameraMinX = halfViewportWidth;  // Left edge of viewport at tower left wall
-            const cameraMaxX = towerWidth - halfViewportWidth;  // Right edge at tower right wall
             const camX = Math.max(cameraMinX, Math.min(player.pos.x, cameraMaxX));
-            const camY = Math.min(player.pos.y, cameraMaxY);  // Don't let camera go below floor level
+            const camY = Math.min(player.pos.y, cameraMaxY);
             k.setCamPos(k.vec2(camX, camY));
         });
 
@@ -664,10 +673,7 @@ export function levelScene(k, levelNum, levelName, nextScene, levelDataUrl) {
                 const shieldEffect = player.get("shieldEffect")[0];
                 if (shieldEffect) k.destroy(shieldEffect);
 
-                // Snap camera to new position
-                const halfViewportWidth = k.width() / 2;
-                const cameraMinX = halfViewportWidth;
-                const cameraMaxX = towerWidth - halfViewportWidth;
+                // Snap camera to new position (using pre-calculated bounds)
                 const camX = Math.max(cameraMinX, Math.min(player.pos.x, cameraMaxX));
                 const camY = Math.min(player.pos.y, cameraMaxY);
                 k.setCamPos(k.vec2(camX, camY));
